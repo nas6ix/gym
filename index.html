@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d1117">
+<title>Gym Coach — your voice-guided workout</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel2: #1f2733;
+    --accent: #2ee66b;
+    --accent2: #58a6ff;
+    --warn: #ffb02e;
+    --danger: #ff5d5d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100dvh;
+  }
+  header {
+    width: 100%;
+    max-width: 560px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header h1 { font-size: 20px; letter-spacing: 0.5px; }
+  header h1 span { color: var(--accent); }
+  #gymBadge {
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: var(--panel2);
+    color: var(--muted);
+    border: 1px solid #30363d;
+    cursor: pointer;
+  }
+  #gymBadge.at-gym { background: rgba(46,230,107,.15); color: var(--accent); border-color: var(--accent); }
+  main {
+    width: 100%;
+    max-width: 560px;
+    flex: 1;
+    padding: 0 18px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid #30363d;
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .card h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; }
+  .programs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .program-btn {
+    background: var(--panel2);
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    color: var(--text);
+    padding: 14px 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+  }
+  .program-btn small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; margin-top: 4px; }
+  .program-btn.selected { border-color: var(--accent); background: rgba(46,230,107,.08); }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .row label { font-size: 13px; color: var(--muted); }
+  select, input[type="range"] {
+    background: var(--panel2);
+    color: var(--text);
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 14px;
+  }
+  input[type="range"] { padding: 0; height: 28px; flex: 1; accent-color: var(--accent); }
+  .big-btn {
+    width: 100%;
+    padding: 18px;
+    border: none;
+    border-radius: 14px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #04160a;
+    background: var(--accent);
+  }
+  .big-btn:disabled { opacity: .4; cursor: default; }
+  .ghost-btn {
+    background: transparent;
+    border: 1px solid #30363d;
+    color: var(--text);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .ghost-btn.danger { color: var(--danger); border-color: var(--danger); }
+
+  /* ===== workout screen ===== */
+  #workoutScreen { display: none; flex-direction: column; gap: 14px; }
+  #phaseLabel {
+    text-align: center;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+  }
+  #phaseLabel.work { color: var(--accent); }
+  #phaseLabel.rest { color: var(--accent2); }
+  #exerciseName {
+    text-align: center;
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.15;
+  }
+  #setInfo { text-align: center; color: var(--muted); font-size: 15px; }
+  #counter {
+    text-align: center;
+    font-size: 110px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    margin: 6px 0;
+  }
+  #counter.rest-color { color: var(--accent2); }
+  #counterSub { text-align: center; color: var(--muted); font-size: 14px; min-height: 20px; }
+  .progressbar {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--panel2);
+    overflow: hidden;
+  }
+  .progressbar > div { height: 100%; width: 0%; background: var(--accent); transition: width .3s linear; }
+  #upNext { text-align: center; font-size: 14px; color: var(--muted); }
+  #upNext b { color: var(--text); }
+  .controls { display: flex; gap: 10px; }
+  .controls button { flex: 1; }
+  #musicStatus { font-size: 12px; color: var(--muted); text-align: center; }
+  .eq {
+    display: inline-flex; gap: 2px; height: 10px; align-items: flex-end; margin-right: 6px;
+  }
+  .eq i { width: 3px; background: var(--accent); animation: eq .8s infinite ease-in-out; }
+  .eq i:nth-child(2) { animation-delay: .2s; }
+  .eq i:nth-child(3) { animation-delay: .4s; }
+  @keyframes eq { 0%,100%{height:3px} 50%{height:10px} }
+  .hidden { display: none !important; }
+  #banner {
+    width: 100%;
+    max-width: 560px;
+    margin: 0 18px;
+    background: rgba(46,230,107,.12);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  #banner button { white-space: nowrap; }
+  footer { padding: 10px; font-size: 11px; color: var(--muted); text-align: center; }
+  #historyList { list-style: none; font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+  #historyList b { color: var(--text); }
+  .file-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  input[type="file"] { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>GYM<span>COACH</span></h1>
+  <div id="gymBadge" title="Tap to set your gym location">📍 set gym</div>
+</header>
+
+<div id="banner">
+  <span id="bannerText">You're at the gym! Ready to train?</span>
+  <button class="ghost-btn" id="bannerStart">Start</button>
+</div>
+
+<main>
+  <!-- ============ HOME SCREEN ============ -->
+  <section id="homeScreen" style="display:flex;flex-direction:column;gap:14px;">
+    <div class="card">
+      <h2>1 · Pick today's workout</h2>
+      <div class="programs" id="programList"></div>
+    </div>
+
+    <div class="card">
+      <h2>2 · Music</h2>
+      <div class="row">
+        <select id="musicMode">
+          <option value="beat">Built-in workout beat</option>
+          <option value="files">My own songs (pick files)</option>
+          <option value="none">No music</option>
+        </select>
+        <button class="ghost-btn" id="pickFilesBtn" style="display:none;">Choose songs…</button>
+        <input type="file" id="fileInput" accept="audio/*" multiple>
+      </div>
+      <div class="file-note" id="fileNote"></div>
+      <div class="row" style="margin-top:10px;">
+        <label>Volume</label>
+        <input type="range" id="volSlider" min="0" max="100" value="70">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3 · Coach settings</h2>
+      <div class="row" style="margin-bottom:8px;">
+        <label style="width:120px;">Rep pace</label>
+        <select id="repPace">
+          <option value="2000">Fast (2s / rep)</option>
+          <option value="3000" selected>Normal (3s / rep)</option>
+          <option value="4000">Slow (4s / rep)</option>
+        </select>
+      </div>
+      <div class="row">
+        <label style="width:120px;">Voice counts reps</label>
+        <select id="voiceCounts">
+          <option value="all" selected>Every rep</option>
+          <option value="milestones">Every 5th rep</option>
+          <option value="off">Silent (screen only)</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="big-btn" id="startBtn">▶ Start workout</button>
+
+    <div class="card" id="historyCard" style="display:none;">
+      <h2>Recent workouts</h2>
+      <ul id="historyList"></ul>
+    </div>
+  </section>
+
+  <!-- ============ WORKOUT SCREEN ============ -->
+  <section id="workoutScreen">
+    <div id="phaseLabel">get ready</div>
+    <div id="exerciseName">Squats</div>
+    <div id="setInfo">Set 1 of 3 · 12 reps</div>
+    <div id="counter">–</div>
+    <div id="counterSub"></div>
+    <div class="progressbar"><div id="progFill"></div></div>
+    <div id="upNext"></div>
+    <div id="musicStatus"></div>
+    <div class="controls">
+      <button class="ghost-btn" id="pauseBtn">⏸ Pause</button>
+      <button class="ghost-btn" id="skipBtn">⏭ Skip</button>
+      <button class="ghost-btn danger" id="endBtn">■ End</button>
+    </div>
+  </section>
+</main>
+
+<footer>Voice + music web coach · works offline once loaded · your data stays on this device</footer>
+
+<script>
+"use strict";
+
+/* =====================================================================
+   WORKOUT PROGRAMS
+   type: "reps"  -> counted rep-by-rep at the chosen pace
+   type: "time"  -> hold/duration exercise, counted down in seconds
+===================================================================== */
+const PROGRAMS = {
+  fullbody: {
+    name: "Full Body",
+    desc: "5 exercises · ~30 min",
+    exercises: [
+      { name: "Squats",            type: "reps", sets: 3, reps: 12, rest: 60, tip: "Chest up, drive through your heels." },
+      { name: "Push-ups",          type: "reps", sets: 3, reps: 10, rest: 60, tip: "Keep your core tight and body straight." },
+      { name: "Lat Pulldown",      type: "reps", sets: 3, reps: 12, rest: 60, tip: "Pull to your chest, squeeze your back." },
+      { name: "Shoulder Press",    type: "reps", sets: 3, reps: 10, rest: 60, tip: "Don't arch your lower back." },
+      { name: "Plank",             type: "time", sets: 3, seconds: 40, rest: 45, tip: "Straight line from head to heels." }
+    ]
+  },
+  push: {
+    name: "Push Day",
+    desc: "Chest · shoulders · triceps",
+    exercises: [
+      { name: "Bench Press",       type: "reps", sets: 4, reps: 8,  rest: 90, tip: "Control the bar down, explode up." },
+      { name: "Incline Dumbbell Press", type: "reps", sets: 3, reps: 10, rest: 75, tip: "45 degree bench, full range." },
+      { name: "Shoulder Press",    type: "reps", sets: 3, reps: 10, rest: 75, tip: "Brace your core." },
+      { name: "Lateral Raises",    type: "reps", sets: 3, reps: 15, rest: 60, tip: "Light weight, lead with the elbows." },
+      { name: "Tricep Pushdowns",  type: "reps", sets: 3, reps: 12, rest: 60, tip: "Elbows pinned to your sides." }
+    ]
+  },
+  pull: {
+    name: "Pull Day",
+    desc: "Back · biceps",
+    exercises: [
+      { name: "Lat Pulldown",      type: "reps", sets: 4, reps: 10, rest: 90, tip: "Drive your elbows down and back." },
+      { name: "Seated Cable Row",  type: "reps", sets: 3, reps: 12, rest: 75, tip: "Squeeze your shoulder blades together." },
+      { name: "Face Pulls",        type: "reps", sets: 3, reps: 15, rest: 60, tip: "Pull towards your forehead." },
+      { name: "Bicep Curls",       type: "reps", sets: 3, reps: 12, rest: 60, tip: "No swinging — strict form." },
+      { name: "Hammer Curls",      type: "reps", sets: 3, reps: 12, rest: 60, tip: "Neutral grip, slow negatives." }
+    ]
+  },
+  legs: {
+    name: "Leg Day",
+    desc: "Quads · hamstrings · glutes",
+    exercises: [
+      { name: "Squats",            type: "reps", sets: 4, reps: 10, rest: 90, tip: "Depth over weight." },
+      { name: "Leg Press",         type: "reps", sets: 3, reps: 12, rest: 90, tip: "Don't lock out your knees." },
+      { name: "Romanian Deadlift", type: "reps", sets: 3, reps: 10, rest: 90, tip: "Hinge at the hips, flat back." },
+      { name: "Leg Curls",         type: "reps", sets: 3, reps: 12, rest: 60, tip: "Squeeze at the top." },
+      { name: "Calf Raises",       type: "reps", sets: 3, reps: 15, rest: 45, tip: "Full stretch at the bottom." },
+      { name: "Wall Sit",          type: "time", sets: 2, seconds: 45, rest: 60, tip: "Thighs parallel to the floor." }
+    ]
+  }
+};
+
+/* =====================================================================
+   SPEECH — the coach's voice. Music is ducked while speaking.
+===================================================================== */
+const Coach = {
+  enabled: "speechSynthesis" in window,
+  speak(text, { duck = true } = {}) {
+    return new Promise(resolve => {
+      if (!this.enabled) return resolve();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 1.05;
+      u.pitch = 1.0;
+      u.volume = 1.0;
+      let restored = false;
+      const restore = () => {
+        if (restored) return;
+        restored = true;
+        if (duck) Music.unduck();
+        resolve();
+      };
+      u.onstart = () => { if (duck) Music.duck(); };
+      u.onend = restore;
+      u.onerror = restore;
+      // Safety net: some mobile browsers occasionally drop onend.
+      setTimeout(restore, 1000 + text.length * 90);
+      speechSynthesis.speak(u);
+    });
+  },
+  sayNumber(n) {
+    // Short, non-blocking count over the music.
+    if (!this.enabled) return;
+    const u = new SpeechSynthesisUtterance(String(n));
+    u.rate = 1.2;
+    speechSynthesis.speak(u);
+  },
+  stop() { if (this.enabled) speechSynthesis.cancel(); }
+};
+
+/* =====================================================================
+   MUSIC — either the user's own audio files (playlist) or a
+   built-in Web-Audio beat so it works with zero setup.
+===================================================================== */
+const Music = {
+  mode: "beat",            // beat | files | none
+  files: [],
+  trackIndex: 0,
+  audioEl: null,
+  ctx: null,
+  beatGain: null,
+  beatTimer: null,
+  playing: false,
+  baseVol: 0.7,
+  ducked: false,
+
+  setVolume(v) {
+    this.baseVol = v;
+    this.applyVolume();
+  },
+  applyVolume() {
+    const v = this.ducked ? this.baseVol * 0.15 : this.baseVol;
+    if (this.audioEl) this.audioEl.volume = v;
+    if (this.beatGain) this.beatGain.gain.setTargetAtTime(v * 0.5, this.ctx.currentTime, 0.1);
+  },
+  duck()   { this.ducked = true;  this.applyVolume(); },
+  unduck() { this.ducked = false; this.applyVolume(); },
+
+  async play() {
+    if (this.playing || this.mode === "none") return;
+    this.playing = true;
+    if (this.mode === "files" && this.files.length) {
+      this.playFile(this.trackIndex);
+    } else if (this.mode === "beat") {
+      this.startBeat();
+    }
+    UI.musicStatus(true);
+  },
+  pause() {
+    if (!this.playing) return;
+    this.playing = false;
+    if (this.audioEl) this.audioEl.pause();
+    this.stopBeat();
+    UI.musicStatus(false);
+  },
+  stopAll() {
+    this.pause();
+    if (this.audioEl) { this.audioEl.src = ""; this.audioEl = null; }
+    this.trackIndex = 0;
+  },
+
+  /* ---- user file playlist ---- */
+  playFile(i) {
+    this.trackIndex = i % this.files.length;
+    if (!this.audioEl) {
+      this.audioEl = new Audio();
+      this.audioEl.addEventListener("ended", () => {
+        if (this.playing) this.playFile(this.trackIndex + 1);
+      });
+    }
+    this.audioEl.src = URL.createObjectURL(this.files[this.trackIndex]);
+    this.applyVolume();
+    this.audioEl.play().catch(() => {});
+  },
+
+  /* ---- built-in generated beat (kick / hat / bass @ 128bpm) ---- */
+  startBeat() {
+    if (!this.ctx) {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.beatGain = this.ctx.createGain();
+      this.beatGain.connect(this.ctx.destination);
+    }
+    this.ctx.resume();
+    this.applyVolume();
+    const bpm = 128, beat = 60 / bpm;
+    let next = this.ctx.currentTime + 0.05, step = 0;
+    const schedule = () => {
+      while (next < this.ctx.currentTime + 0.3) {
+        const t = next;
+        // kick on every beat
+        if (step % 2 === 0) this.kick(t);
+        // hat on off-beats
+        this.hat(t + beat / 4);
+        // bass note pattern every bar
+        if (step % 8 === 0) this.bass(t, 55);
+        if (step % 8 === 4) this.bass(t, 65.4);
+        next += beat / 2;
+        step++;
+      }
+    };
+    schedule();
+    this.beatTimer = setInterval(schedule, 120);
+  },
+  stopBeat() {
+    if (this.beatTimer) { clearInterval(this.beatTimer); this.beatTimer = null; }
+    if (this.ctx) this.ctx.suspend();
+  },
+  kick(t) {
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.frequency.setValueAtTime(150, t);
+    o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
+    g.gain.setValueAtTime(1, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    o.connect(g); g.connect(this.beatGain);
+    o.start(t); o.stop(t + 0.3);
+  },
+  hat(t) {
+    const buf = this.ctx.createBuffer(1, 2205, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / 300);
+    const s = this.ctx.createBufferSource(), g = this.ctx.createGain(), f = this.ctx.createBiquadFilter();
+    f.type = "highpass"; f.frequency.value = 7000;
+    g.gain.value = 0.25;
+    s.buffer = buf;
+    s.connect(f); f.connect(g); g.connect(this.beatGain);
+    s.start(t);
+  },
+  bass(t, freq) {
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = "sawtooth";
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(0.18, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+    o.connect(g); g.connect(this.beatGain);
+    o.start(t); o.stop(t + 0.45);
+  }
+};
+
+/* =====================================================================
+   GYM LOCATION — save your gym once; the site greets you and offers
+   to start when you open it within ~150 m of that spot.
+===================================================================== */
+const Gym = {
+  RADIUS_M: 150,
+  get saved() {
+    try { return JSON.parse(localStorage.getItem("gymCoach.location")); } catch { return null; }
+  },
+  save(lat, lon) {
+    localStorage.setItem("gymCoach.location", JSON.stringify({ lat, lon }));
+  },
+  clear() { localStorage.removeItem("gymCoach.location"); },
+  distance(lat1, lon1, lat2, lon2) {
+    const R = 6371000, toRad = d => d * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat / 2) ** 2 +
+              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  },
+  setHere() {
+    if (!navigator.geolocation) return alert("Geolocation isn't available in this browser.");
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        this.save(pos.coords.latitude, pos.coords.longitude);
+        UI.updateGymBadge("saved");
+        alert("Gym location saved! Next time you open this page at the gym, I'll offer to start your workout.");
+      },
+      () => alert("Couldn't get your location. Check location permissions and try again."),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  },
+  checkOnLoad() {
+    const g = this.saved;
+    if (!g || !navigator.geolocation) return;
+    UI.updateGymBadge("saved");
+    navigator.geolocation.getCurrentPosition(pos => {
+      const d = this.distance(pos.coords.latitude, pos.coords.longitude, g.lat, g.lon);
+      if (d <= this.RADIUS_M) {
+        UI.updateGymBadge("at-gym");
+        UI.showBanner("📍 You're at the gym! Ready to train?");
+      }
+    }, () => {}, { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 });
+  }
+};
+
+/* =====================================================================
+   WORKOUT ENGINE — the state machine that drives everything.
+   announce exercise -> countdown -> reps (music on, coach counts)
+   -> rest (timer) -> next set / next exercise -> done
+===================================================================== */
+const Engine = {
+  program: null,
+  exIdx: 0,
+  setIdx: 0,
+  running: false,
+  paused: false,
+  timer: null,
+  totalSets: 0,
+  doneSets: 0,
+  wakeLock: null,
+
+  async start(programKey) {
+    this.program = PROGRAMS[programKey];
+    this.programKey = programKey;
+    this.exIdx = 0;
+    this.setIdx = 0;
+    this.doneSets = 0;
+    this.totalSets = this.program.exercises.reduce((s, e) => s + e.sets, 0);
+    this.running = true;
+    this.paused = false;
+    UI.showWorkout();
+    this.requestWakeLock();
+    await Coach.speak(`Welcome to your ${this.program.name} workout. ${this.program.exercises.length} exercises today. Let's go!`);
+    this.beginExercise();
+  },
+
+  async requestWakeLock() {
+    try { this.wakeLock = await navigator.wakeLock?.request("screen"); } catch {}
+  },
+
+  currentExercise() { return this.program.exercises[this.exIdx]; },
+
+  async beginExercise() {
+    if (!this.running) return;
+    const ex = this.currentExercise();
+    this.setIdx = 0;
+    UI.setExercise(ex, this.exIdx, this.program.exercises.length);
+    Music.pause();
+    const what = ex.type === "time"
+      ? `${ex.sets} sets of ${ex.seconds} seconds`
+      : `${ex.sets} sets of ${ex.reps} reps`;
+    await Coach.speak(`Next up: ${ex.name}. ${what}. ${ex.tip || ""}`);
+    this.beginSet();
+  },
+
+  async beginSet() {
+    if (!this.running) return;
+    const ex = this.currentExercise();
+    UI.setPhase("work");
+    UI.setSetInfo(ex, this.setIdx);
+    await Coach.speak(`Set ${this.setIdx + 1}. Get ready.`);
+    Music.play();
+    await this.countdown(3);
+    if (ex.type === "time") this.runTimedSet(ex);
+    else this.runRepSet(ex);
+  },
+
+  countdown(n) {
+    return new Promise(resolve => {
+      let c = n;
+      UI.setCounter(c, "starting in");
+      Coach.sayNumber(c);
+      this.timer = setInterval(() => {
+        if (this.paused) return;
+        c--;
+        if (c <= 0) {
+          clearInterval(this.timer);
+          Coach.sayNumber("Go!");
+          resolve();
+        } else {
+          UI.setCounter(c, "starting in");
+          Coach.sayNumber(c);
+        }
+      }, 1000);
+    });
+  },
+
+  runRepSet(ex) {
+    const pace = Settings.repPace;
+    const voiceMode = Settings.voiceCounts;
+    let rep = 0;
+    UI.setCounter(0, `of ${ex.reps} reps`);
+    const tick = () => {
+      if (!this.running) return;
+      if (this.paused) return;
+      rep++;
+      UI.setCounter(rep, `of ${ex.reps} reps`);
+      UI.setProgress(rep / ex.reps);
+      if (voiceMode === "all") Coach.sayNumber(rep);
+      else if (voiceMode === "milestones" && (rep % 5 === 0 || rep === ex.reps)) Coach.sayNumber(rep);
+      if (rep >= ex.reps) {
+        clearInterval(this.timer);
+        this.finishSet();
+      }
+    };
+    this.timer = setInterval(tick, pace);
+  },
+
+  runTimedSet(ex) {
+    let remaining = ex.seconds;
+    UI.setCounter(remaining, "seconds — hold it!");
+    this.timer = setInterval(() => {
+      if (!this.running) return;
+      if (this.paused) return;
+      remaining--;
+      UI.setCounter(remaining, "seconds — hold it!");
+      UI.setProgress(1 - remaining / ex.seconds);
+      if (remaining === Math.floor(ex.seconds / 2)) Coach.speak("Halfway there!");
+      else if (remaining === 5) Coach.sayNumber(5);
+      else if (remaining > 0 && remaining < 5) Coach.sayNumber(remaining);
+      if (remaining <= 0) {
+        clearInterval(this.timer);
+        this.finishSet();
+      }
+    }, 1000);
+  },
+
+  async finishSet() {
+    this.doneSets++;
+    const ex = this.currentExercise();
+    const lastSet = this.setIdx >= ex.sets - 1;
+    const lastExercise = this.exIdx >= this.program.exercises.length - 1;
+
+    if (lastSet && lastExercise) return this.finishWorkout();
+
+    if (lastSet) {
+      // Rest, then move to the next exercise/machine.
+      const next = this.program.exercises[this.exIdx + 1];
+      await Coach.speak(`Great job, ${ex.name} done!`);
+      await this.rest(ex.rest, `Move on to ${next.name}`);
+      this.exIdx++;
+      this.beginExercise();
+    } else {
+      await Coach.speak(`Set ${this.setIdx + 1} done. Take a break.`);
+      await this.rest(ex.rest, "Next set");
+      this.setIdx++;
+      this.beginSet();
+    }
+  },
+
+  rest(seconds, nextLabel) {
+    return new Promise(resolve => {
+      if (!this.running) return resolve();
+      UI.setPhase("rest");
+      UI.setUpNext(nextLabel);
+      let remaining = seconds;
+      UI.setCounter(remaining, "rest — breathe");
+      this.timer = setInterval(() => {
+        if (!this.running) { clearInterval(this.timer); return resolve(); }
+        if (this.paused) return;
+        remaining--;
+        UI.setCounter(remaining, "rest — breathe");
+        UI.setProgress(1 - remaining / seconds);
+        if (remaining === 10) Coach.speak("10 seconds left.");
+        if (remaining <= 0) {
+          clearInterval(this.timer);
+          UI.setUpNext("");
+          resolve();
+        }
+      }, 1000);
+    });
+  },
+
+  skip() {
+    if (!this.running) return;
+    clearInterval(this.timer);
+    Coach.stop();
+    Music.unduck();
+    const ex = this.currentExercise();
+    const lastSet = this.setIdx >= ex.sets - 1;
+    const lastExercise = this.exIdx >= this.program.exercises.length - 1;
+    if (lastSet && lastExercise) return this.finishWorkout();
+    if (lastSet) { this.exIdx++; this.beginExercise(); }
+    else { this.setIdx++; this.beginSet(); }
+  },
+
+  togglePause() {
+    this.paused = !this.paused;
+    if (this.paused) { Music.pause(); Coach.speak("Paused.", { duck: false }); }
+    else { Music.play(); Coach.speak("Resuming.", { duck: false }); }
+    UI.setPauseLabel(this.paused);
+  },
+
+  async finishWorkout() {
+    this.running = false;
+    clearInterval(this.timer);
+    Music.stopAll();
+    History.log(this.programKey, this.doneSets);
+    UI.setPhase("done");
+    UI.setCounter("🎉", "");
+    UI.setProgress(1);
+    await Coach.speak(`Workout complete! ${this.doneSets} sets done. Amazing work — see you next time.`);
+    setTimeout(() => UI.showHome(), 2500);
+    this.wakeLock?.release().catch(() => {});
+  },
+
+  end() {
+    this.running = false;
+    clearInterval(this.timer);
+    Coach.stop();
+    Music.stopAll();
+    this.wakeLock?.release().catch(() => {});
+    UI.showHome();
+  }
+};
+
+/* =====================================================================
+   SETTINGS + HISTORY (localStorage)
+===================================================================== */
+const Settings = {
+  get repPace() { return parseInt(document.getElementById("repPace").value, 10); },
+  get voiceCounts() { return document.getElementById("voiceCounts").value; }
+};
+
+const History = {
+  key: "gymCoach.history",
+  all() {
+    try { return JSON.parse(localStorage.getItem(this.key)) || []; } catch { return []; }
+  },
+  log(programKey, sets) {
+    const list = this.all();
+    list.unshift({ date: new Date().toISOString(), program: PROGRAMS[programKey].name, sets });
+    localStorage.setItem(this.key, JSON.stringify(list.slice(0, 20)));
+    UI.renderHistory();
+  }
+};
+
+/* =====================================================================
+   UI
+===================================================================== */
+const UI = {
+  selectedProgram: "fullbody",
+
+  init() {
+    // program buttons
+    const list = document.getElementById("programList");
+    for (const [key, p] of Object.entries(PROGRAMS)) {
+      const b = document.createElement("button");
+      b.className = "program-btn" + (key === this.selectedProgram ? " selected" : "");
+      b.innerHTML = `${p.name}<small>${p.desc}</small>`;
+      b.onclick = () => {
+        this.selectedProgram = key;
+        document.querySelectorAll(".program-btn").forEach(x => x.classList.remove("selected"));
+        b.classList.add("selected");
+      };
+      list.appendChild(b);
+    }
+
+    // music mode
+    const modeSel = document.getElementById("musicMode");
+    const pickBtn = document.getElementById("pickFilesBtn");
+    const fileInput = document.getElementById("fileInput");
+    modeSel.onchange = () => {
+      Music.mode = modeSel.value;
+      pickBtn.style.display = modeSel.value === "files" ? "" : "none";
+    };
+    pickBtn.onclick = () => fileInput.click();
+    fileInput.onchange = () => {
+      Music.files = Array.from(fileInput.files);
+      document.getElementById("fileNote").textContent =
+        Music.files.length ? `${Music.files.length} song(s) loaded ✔` : "";
+    };
+
+    document.getElementById("volSlider").oninput = e =>
+      Music.setVolume(e.target.value / 100);
+
+    // main buttons
+    document.getElementById("startBtn").onclick = () => Engine.start(this.selectedProgram);
+    document.getElementById("pauseBtn").onclick = () => Engine.togglePause();
+    document.getElementById("skipBtn").onclick = () => Engine.skip();
+    document.getElementById("endBtn").onclick = () => {
+      if (confirm("End this workout?")) Engine.end();
+    };
+
+    // gym badge + banner
+    document.getElementById("gymBadge").onclick = () => {
+      if (Gym.saved && confirm("Gym location is saved. Replace it with your current location?\n(Cancel keeps the existing one.)")) {
+        Gym.setHere();
+      } else if (!Gym.saved) {
+        Gym.setHere();
+      }
+    };
+    document.getElementById("bannerStart").onclick = () => {
+      document.getElementById("banner").style.display = "none";
+      Engine.start(this.selectedProgram);
+    };
+
+    this.renderHistory();
+    Gym.checkOnLoad();
+  },
+
+  showWorkout() {
+    document.getElementById("homeScreen").style.display = "none";
+    document.getElementById("workoutScreen").style.display = "flex";
+    document.getElementById("banner").style.display = "none";
+  },
+  showHome() {
+    document.getElementById("workoutScreen").style.display = "none";
+    document.getElementById("homeScreen").style.display = "flex";
+    this.renderHistory();
+  },
+  setExercise(ex, idx, total) {
+    document.getElementById("exerciseName").textContent = ex.name;
+    document.getElementById("counterSub").textContent = "";
+    this.setProgress(0);
+    document.getElementById("upNext").innerHTML =
+      `Exercise <b>${idx + 1}</b> of <b>${total}</b>`;
+  },
+  setSetInfo(ex, setIdx) {
+    const what = ex.type === "time" ? `${ex.seconds}s hold` : `${ex.reps} reps`;
+    document.getElementById("setInfo").textContent =
+      `Set ${setIdx + 1} of ${ex.sets} · ${what}`;
+  },
+  setPhase(phase) {
+    const el = document.getElementById("phaseLabel");
+    const counter = document.getElementById("counter");
+    el.className = "";
+    counter.classList.remove("rest-color");
+    if (phase === "work") { el.textContent = "workout"; el.classList.add("work"); }
+    else if (phase === "rest") { el.textContent = "rest"; el.classList.add("rest"); counter.classList.add("rest-color"); }
+    else if (phase === "done") { el.textContent = "complete!"; el.classList.add("work"); }
+    else el.textContent = phase;
+  },
+  setCounter(v, sub) {
+    document.getElementById("counter").textContent = v;
+    document.getElementById("counterSub").textContent = sub || "";
+  },
+  setProgress(frac) {
+    document.getElementById("progFill").style.width =
+      Math.max(0, Math.min(100, frac * 100)) + "%";
+  },
+  setUpNext(label) {
+    document.getElementById("upNext").innerHTML = label ? `Up next: <b>${label}</b>` : "";
+  },
+  setPauseLabel(paused) {
+    document.getElementById("pauseBtn").textContent = paused ? "▶ Resume" : "⏸ Pause";
+  },
+  musicStatus(playing) {
+    document.getElementById("musicStatus").innerHTML = playing
+      ? `<span class="eq"><i></i><i></i><i></i></span>music playing — ducks when the coach speaks`
+      : "";
+  },
+  updateGymBadge(state) {
+    const b = document.getElementById("gymBadge");
+    if (state === "at-gym") { b.textContent = "📍 at the gym"; b.classList.add("at-gym"); }
+    else if (state === "saved") { b.textContent = "📍 gym saved"; b.classList.remove("at-gym"); }
+  },
+  showBanner(text) {
+    document.getElementById("bannerText").textContent = text;
+    document.getElementById("banner").style.display = "flex";
+  },
+  renderHistory() {
+    const list = History.all();
+    const card = document.getElementById("historyCard");
+    if (!list.length) { card.style.display = "none"; return; }
+    card.style.display = "";
+    document.getElementById("historyList").innerHTML = list.slice(0, 5).map(h => {
+      const d = new Date(h.date);
+      return `<li><b>${h.program}</b> — ${h.sets} sets · ${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</li>`;
+    }).join("");
+  }
+};
+
+UI.init();
+</script>
+</body>
+</html>
