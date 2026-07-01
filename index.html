@@ -208,6 +208,7 @@
       <h2>2 · Music</h2>
       <div class="row">
         <select id="musicMode">
+          <option value="spotify">🟢 My Spotify (paste playlist)</option>
           <option value="youtube">🦉 Drake mix (YouTube)</option>
           <option value="beat">Built-in workout beat</option>
           <option value="files">My own songs (pick files)</option>
@@ -218,6 +219,10 @@
       </div>
       <div class="row" id="ytRow" style="margin-top:10px;">
         <input type="text" id="ytUrl" placeholder="Optional: paste any YouTube song/playlist link"
+               style="flex:1;background:var(--panel2);color:var(--text);border:1px solid #30363d;border-radius:8px;padding:8px;font-size:13px;">
+      </div>
+      <div class="row" id="spotifyRow" style="margin-top:10px;">
+        <input type="text" id="spotifyUrl" placeholder="Paste your Spotify playlist link (Share → Copy link)"
                style="flex:1;background:var(--panel2);color:var(--text);border:1px solid #30363d;border-radius:8px;padding:8px;font-size:13px;">
       </div>
       <div class="file-note" id="fileNote">Leave the box empty for the built-in Drake playlist. Streams via YouTube, so it needs internet — for offline, use "My own songs".</div>
@@ -269,6 +274,7 @@
     <div class="progressbar"><div id="progFill"></div></div>
     <div id="upNext"></div>
     <div id="musicStatus"></div>
+    <div id="spotifyWrap" class="hidden" style="border-radius:12px;overflow:hidden;"><div id="spotifyEmbed"></div></div>
     <div class="controls">
       <button class="ghost-btn" id="pauseBtn">⏸ Pause</button>
       <button class="ghost-btn" id="skipBtn">⏭ Skip</button>
@@ -322,16 +328,18 @@ const PROGRAMS = {
       { name: "Hammer Curls",      type: "reps", sets: 3, reps: 12, rest: 60, tip: "Neutral grip, slow negatives." }
     ]
   },
-  legs: {
-    name: "Leg Day",
-    desc: "Quads · hamstrings · glutes",
+  glutes: {
+    name: "Glute Day",
+    desc: "Glutes · hams · calves",
     exercises: [
-      { name: "Squats",            type: "reps", sets: 4, reps: 10, rest: 90, tip: "Depth over weight." },
-      { name: "Leg Press",         type: "reps", sets: 3, reps: 12, rest: 90, tip: "Don't lock out your knees." },
-      { name: "Romanian Deadlift", type: "reps", sets: 3, reps: 10, rest: 90, tip: "Hinge at the hips, flat back." },
-      { name: "Leg Curls",         type: "reps", sets: 3, reps: 12, rest: 60, tip: "Squeeze at the top." },
-      { name: "Calf Raises",       type: "reps", sets: 3, reps: 15, rest: 45, tip: "Full stretch at the bottom." },
-      { name: "Wall Sit",          type: "time", sets: 2, seconds: 45, rest: 60, tip: "Thighs parallel to the floor." }
+      { name: "Glute Bridges",          type: "reps", sets: 2, reps: 15, rest: 30, tip: "Warm-up activation — squeeze hard at the top." },
+      { name: "Hip Thrusts",            type: "reps", sets: 4, reps: 12, rest: 90, tip: "Chin tucked, drive through your heels, and hold the squeeze at the top." },
+      { name: "Romanian Deadlift",      type: "reps", sets: 3, reps: 10, rest: 90, tip: "Hinge at the hips, flat back, feel the stretch in your hamstrings." },
+      { name: "Bulgarian Split Squats", type: "reps", sets: 3, reps: 20, perLeg: true, rest: 75, tip: "Front heel planted, slight forward lean to load the glute." },
+      { name: "Leg Press",              type: "reps", sets: 3, reps: 12, rest: 90, tip: "Feet high and wide on the platform to target the glutes." },
+      { name: "Hip Abductor Machine",   type: "reps", sets: 3, reps: 15, rest: 60, tip: "Lean slightly forward, push out with control — no slamming back." },
+      { name: "Cable Glute Kickbacks",  type: "reps", sets: 3, reps: 24, perLeg: true, rest: 60, tip: "Kick back and up, squeeze — don't swing the weight." },
+      { name: "Calf Press",             type: "reps", sets: 3, reps: 15, rest: 45, tip: "Full stretch at the bottom, pause at the top." }
     ]
   }
 };
@@ -486,7 +494,7 @@ const Phrases = {
    built-in Web-Audio beat so it works with zero setup.
 ===================================================================== */
 const Music = {
-  mode: "beat",            // beat | files | youtube | none
+  mode: "beat",            // beat | files | youtube | spotify | none
   files: [],
   trackIndex: 0,
   audioEl: null,
@@ -509,8 +517,19 @@ const Music = {
       try { this.ytPlayer.setVolume(Math.round(v * 100)); } catch {}
     }
   },
-  duck()   { this.ducked = true;  this.applyVolume(); },
-  unduck() { this.ducked = false; this.applyVolume(); },
+  duck() {
+    this.ducked = true;
+    // Spotify's embed has no volume API, so ducking = pause/resume.
+    if (this.mode === "spotify") {
+      if (this.playing) { try { this.spController?.pause(); } catch {} }
+    } else this.applyVolume();
+  },
+  unduck() {
+    this.ducked = false;
+    if (this.mode === "spotify") {
+      if (this.playing) { try { this.spController?.resume(); } catch {} }
+    } else this.applyVolume();
+  },
 
   async play() {
     if (this.playing || this.mode === "none") return;
@@ -519,6 +538,8 @@ const Music = {
       this.playFile(this.trackIndex);
     } else if (this.mode === "youtube") {
       this.playYT();
+    } else if (this.mode === "spotify") {
+      this.playSpotify();
     } else if (this.mode === "beat") {
       this.startBeat();
     }
@@ -529,6 +550,7 @@ const Music = {
     this.playing = false;
     if (this.audioEl) this.audioEl.pause();
     if (this.ytPlayer?.pauseVideo) { try { this.ytPlayer.pauseVideo(); } catch {} }
+    if (this.spController) { try { this.spController.pause(); } catch {} }
     this.stopBeat();
     UI.musicStatus(false);
   },
@@ -537,7 +559,64 @@ const Music = {
     if (this.audioEl) { this.audioEl.src = ""; this.audioEl = null; }
     if (this.ytPlayer?.stopVideo) { try { this.ytPlayer.stopVideo(); } catch {} }
     this.ytStarted = false;
+    this.spStarted = false;
     this.trackIndex = 0;
+  },
+
+  /* ---- Spotify: paste any playlist/album/track link ----
+     Uses Spotify's official iframe embed API. Full songs play when
+     you're logged in to Spotify in this browser (previews otherwise).
+     No volume control is exposed, so the coach pauses/resumes it
+     instead of ducking. ---- */
+  spController: null,
+  spAPI: null,
+  spLoading: false,
+  spStarted: false,
+  ensureSpotify(cb) {
+    if (this.spController) return cb();
+    const build = API => {
+      const uri = this.parseSpotifyUrl(document.getElementById("spotifyUrl").value.trim());
+      if (!uri) {
+        UI.musicStatusText("No Spotify link set — paste your playlist link on the home screen (Share → Copy link).");
+        return;
+      }
+      document.getElementById("spotifyWrap").classList.remove("hidden");
+      API.createController(
+        document.getElementById("spotifyEmbed"),
+        { uri, width: "100%", height: 80 },
+        controller => { this.spController = controller; cb(); }
+      );
+    };
+    if (this.spAPI) return build(this.spAPI);
+    window.onSpotifyIframeApiReady = API => { this.spAPI = API; build(API); };
+    if (!this.spLoading) {
+      this.spLoading = true;
+      const s = document.createElement("script");
+      s.src = "https://open.spotify.com/embed/iframe-api/v1";
+      s.async = true;
+      s.onerror = () => {
+        UI.musicStatusText("Couldn't reach Spotify — check your connection.");
+        this.spLoading = false;
+      };
+      document.head.appendChild(s);
+    }
+  },
+  playSpotify() {
+    this.ensureSpotify(() => {
+      if (!this.playing) return;   // workout may have been ended meanwhile
+      try {
+        if (!this.spStarted) { this.spController.play(); this.spStarted = true; }
+        else this.spController.resume();
+      } catch {}
+    });
+  },
+  parseSpotifyUrl(url) {
+    if (!url) return null;
+    let m = url.match(/open\.spotify\.com\/(?:intl-[\w-]+\/)?(playlist|album|track|artist)\/([A-Za-z0-9]+)/);
+    if (m) return `spotify:${m[1]}:${m[2]}`;
+    m = url.match(/^spotify:(playlist|album|track|artist):([A-Za-z0-9]+)$/);
+    if (m) return url;
+    return null;
   },
 
   /* ---- YouTube: built-in Drake playlist, or any pasted link ----
@@ -773,7 +852,9 @@ const Engine = {
     Music.pause();
     const what = ex.type === "time"
       ? `${ex.sets} sets of ${ex.seconds} seconds`
-      : `${ex.sets} sets of ${ex.reps} reps`;
+      : ex.perLeg
+        ? `${ex.sets} sets of ${ex.reps / 2} reps per leg`
+        : `${ex.sets} sets of ${ex.reps} reps`;
     await Coach.speak(Phrases.nextUp(ex.name, what, ex.tip || ""));
     this.beginSet();
   },
@@ -823,7 +904,8 @@ const Engine = {
       UI.setProgress(rep / ex.reps);
       if (voiceMode === "all") Coach.sayNumber(rep);
       else if (voiceMode === "milestones" && (rep % 5 === 0 || rep === ex.reps)) Coach.sayNumber(rep);
-      if (ex.reps >= 8 && rep === Math.ceil(ex.reps / 2)) Coach.quick(Phrases.pick(Phrases.halfway));
+      if (ex.perLeg && rep === ex.reps / 2) Coach.quick("Switch legs!");
+      else if (ex.reps >= 8 && rep === Math.ceil(ex.reps / 2)) Coach.quick(Phrases.pick(Phrases.halfway));
       else if (rep === ex.reps - 1) Coach.quick(Phrases.pick(Phrases.lastRep));
       if (rep >= ex.reps) {
         clearInterval(this.timer);
@@ -988,8 +1070,10 @@ const UI = {
     const pickBtn = document.getElementById("pickFilesBtn");
     const fileInput = document.getElementById("fileInput");
     const ytRow = document.getElementById("ytRow");
+    const spotifyRow = document.getElementById("spotifyRow");
     const fileNote = document.getElementById("fileNote");
     const NOTES = {
+      spotify: "Any playlist, album, or song link works. Log in to Spotify in this browser for full songs (otherwise previews). Tip: for random songs, shuffle a big playlist like your Liked Songs into a playlist and paste it.",
       youtube: `Leave the box empty for the built-in Drake playlist. Streams via YouTube, so it needs internet — for offline, use "My own songs".`,
       files: "Pick MP3s from your phone — they play offline with perfect ducking.",
       beat: "A generated 128 BPM beat — works anywhere, no internet needed.",
@@ -999,10 +1083,21 @@ const UI = {
       Music.mode = modeSel.value;
       pickBtn.style.display = modeSel.value === "files" ? "" : "none";
       ytRow.style.display = modeSel.value === "youtube" ? "" : "none";
+      spotifyRow.style.display = modeSel.value === "spotify" ? "" : "none";
       fileNote.textContent = NOTES[modeSel.value];
+      localStorage.setItem("gymCoach.musicMode", modeSel.value);
     };
+    const savedMode = localStorage.getItem("gymCoach.musicMode");
+    if (savedMode && [...modeSel.options].some(o => o.value === savedMode)) modeSel.value = savedMode;
     modeSel.onchange = applyMode;
     applyMode();
+
+    // remember pasted music links
+    for (const id of ["spotifyUrl", "ytUrl"]) {
+      const input = document.getElementById(id);
+      input.value = localStorage.getItem("gymCoach." + id) || "";
+      input.onchange = () => localStorage.setItem("gymCoach." + id, input.value.trim());
+    }
     pickBtn.onclick = () => fileInput.click();
     fileInput.onchange = () => {
       Music.files = Array.from(fileInput.files);
@@ -1058,7 +1153,9 @@ const UI = {
       `Exercise <b>${idx + 1}</b> of <b>${total}</b>`;
   },
   setSetInfo(ex, setIdx) {
-    const what = ex.type === "time" ? `${ex.seconds}s hold` : `${ex.reps} reps`;
+    const what = ex.type === "time" ? `${ex.seconds}s hold`
+      : ex.perLeg ? `${ex.reps / 2} reps / leg`
+      : `${ex.reps} reps`;
     document.getElementById("setInfo").textContent =
       `Set ${setIdx + 1} of ${ex.sets} · ${what}`;
   },
@@ -1087,9 +1184,12 @@ const UI = {
     document.getElementById("pauseBtn").textContent = paused ? "▶ Resume" : "⏸ Pause";
   },
   musicStatus(playing) {
-    const label = Music.mode === "youtube" ? "Drake on deck 🦉" : "music playing";
+    const label = Music.mode === "youtube" ? "Drake on deck 🦉"
+      : Music.mode === "spotify" ? "Spotify playing 🟢"
+      : "music playing";
+    const how = Music.mode === "spotify" ? "pauses" : "ducks";
     document.getElementById("musicStatus").innerHTML = playing
-      ? `<span class="eq"><i></i><i></i><i></i></span>${label} — ducks when the coach speaks`
+      ? `<span class="eq"><i></i><i></i><i></i></span>${label} — ${how} when the coach speaks`
       : "";
   },
   musicStatusText(text) {

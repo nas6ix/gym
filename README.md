@@ -8,12 +8,13 @@ Open it on your phone at the gym and it:
 - **Tells you what to do** — a voice coach announces each exercise ("Next up: Squats — 3 sets of 12"), with a quick form tip. It auto-picks the most natural voice on your device (Neural/Natural voices), and you can choose a different one in Coach settings. The lines are varied and hype — no robotic script.
 - **Counts your reps out loud** — pick your pace (2–4 seconds per rep) and it counts every rep (or every 5th, or silently on screen).
 - **Tells you when to rest** — automatic rest timers between sets, with a "10 seconds left" heads-up.
-- **Plays music during sets** — three options:
+- **Plays music during sets** — four options:
+  - **🟢 My Spotify** — paste any Spotify playlist/album/song link once and it plays through the official Spotify embed. Full songs when you're logged in to Spotify in the browser (previews otherwise). The coach pauses/resumes it around announcements (Spotify's embed has no volume control).
   - **🦉 Drake mix** — streams a built-in Drake playlist through the official YouTube embed player (needs internet). You can also paste any YouTube song or playlist link instead.
   - **Your own songs** — pick MP3s from your phone; plays offline.
   - **Built-in beat** — a generated 128 BPM workout beat, works anywhere.
 
-  Whichever you pick, the music automatically ducks down whenever the coach speaks, then comes back.
+  For YouTube, own songs, and the beat, the music automatically ducks down whenever the coach speaks, then comes back.
 - **Tells you when to move on** — "Great job, Squats done! Move on to Leg Press."
 - **Remembers your workouts** — recent sessions are saved on your device.
 
@@ -22,7 +23,7 @@ Open it on your phone at the gym and it:
 - **Full Body** — squats, push-ups, lat pulldown, shoulder press, plank
 - **Push Day** — bench, incline press, shoulder press, lateral raises, pushdowns
 - **Pull Day** — pulldown, rows, face pulls, curls
-- **Leg Day** — squats, leg press, RDLs, leg curls, calves, wall sit
+- **Glute Day** — glute bridge activation, hip thrusts, RDLs, Bulgarian split squats (per-leg with a "switch legs" callout), leg press (high & wide stance), hip abductors, cable kickbacks, calf press
 
 Programs live in the `PROGRAMS` object at the top of the script in `index.html` — edit names, sets, reps, and rest times to make them yours.
 
