@@ -284,6 +284,20 @@
       </p>
       <div id="clipList" style="display:flex;flex-direction:column;gap:8px;"></div>
     </div>
+    <div class="card">
+      <h2>Take your voice to your phone</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">
+        <b>Export</b> downloads a <code>voicepack.json</code> file with all your clips.
+        Get it onto your phone two ways: open the site on your phone and <b>Import</b> the file,
+        or upload the file to your GitHub repo next to <code>index.html</code> —
+        then the site loads your voice automatically on <i>every</i> device.
+      </p>
+      <div class="row">
+        <button class="ghost-btn" id="exportPackBtn">⬇ Export voice pack</button>
+        <button class="ghost-btn" id="importPackBtn">⬆ Import voice pack</button>
+        <input type="file" id="packInput" accept=".json,application/json">
+      </div>
+    </div>
     <button class="big-btn" id="recordDoneBtn">✓ Done recording</button>
   </section>
 
@@ -567,6 +581,55 @@ const VoiceBank = {
       await new Promise(res => { tx.oncomplete = res; tx.onerror = res; });
       (keys.result || []).forEach((k, i) => { this.cache[k] = vals.result[i]; });
     } catch {}
+    await this.loadPack();
+  },
+  /* Voice packs: your clips as one portable JSON file. If a file named
+     voicepack.json sits next to index.html (committed to the repo),
+     it's loaded automatically on every device — so the site "ships"
+     with your voice. Local recordings always win over the pack. */
+  async loadPack() {
+    try {
+      const res = await fetch("voicepack.json", { cache: "no-cache" });
+      if (!res.ok) return;
+      const pack = await res.json();
+      for (const [id, dataUrl] of Object.entries(pack.clips || {})) {
+        if (this.cache[id]) continue;
+        this.cache[id] = await (await fetch(dataUrl)).blob();
+      }
+    } catch {}
+  },
+  async exportPack() {
+    const clips = {};
+    for (const [id, blob] of Object.entries(this.cache)) {
+      clips[id] = await new Promise(r => {
+        const fr = new FileReader();
+        fr.onload = () => r(fr.result);
+        fr.readAsDataURL(blob);
+      });
+    }
+    const blob = new Blob(
+      [JSON.stringify({ app: "gymCoach", version: 1, clips })],
+      { type: "application/json" }
+    );
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "voicepack.json";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  },
+  async importPack(file) {
+    try {
+      const pack = JSON.parse(await file.text());
+      let n = 0;
+      for (const [id, dataUrl] of Object.entries(pack.clips || {})) {
+        const blob = await (await fetch(dataUrl)).blob();
+        await this.save(id, blob);   // saves to IndexedDB too
+        n++;
+      }
+      return n;
+    } catch {
+      return 0;
+    }
   },
   count() { return Object.keys(this.cache).length; },
   has(id) { return !!this.cache[id]; },
@@ -1257,8 +1320,27 @@ const UI = {
       localStorage.setItem("gymCoach.voiceSource", srcSel.value);
       voiceNote();
     };
-    VoiceBank.init().then(voiceNote);
+    VoiceBank.init().then(() => {
+      // A shipped/imported voice pack turns "my voice" on by default.
+      if (!localStorage.getItem("gymCoach.voiceSource") && VoiceBank.count()) {
+        srcSel.value = "mine";
+      }
+      voiceNote();
+    });
     document.getElementById("recordVoiceBtn").onclick = () => this.showRecord();
+    document.getElementById("exportPackBtn").onclick = () => {
+      if (!VoiceBank.count()) return alert("Record at least one phrase first.");
+      VoiceBank.exportPack();
+    };
+    const packInput = document.getElementById("packInput");
+    document.getElementById("importPackBtn").onclick = () => packInput.click();
+    packInput.onchange = async () => {
+      if (!packInput.files[0]) return;
+      const n = await VoiceBank.importPack(packInput.files[0]);
+      alert(n ? `Imported ${n} voice clip(s) ✔` : "That didn't look like a voice pack file.");
+      this.renderClipList();
+      voiceNote();
+    };
     document.getElementById("recordDoneBtn").onclick = () => {
       Recorder.stop();
       if (VoiceBank.count()) {
