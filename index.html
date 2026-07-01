@@ -235,6 +235,15 @@
     <div class="card">
       <h2>3 · Coach settings</h2>
       <div class="row" style="margin-bottom:8px;">
+        <label style="width:120px;">Voice source</label>
+        <select id="voiceSource">
+          <option value="tts">Phone voice</option>
+          <option value="mine">My recorded voice</option>
+        </select>
+        <button class="ghost-btn" id="recordVoiceBtn">🎙 Record…</button>
+      </div>
+      <div class="file-note" id="voiceNote" style="margin-bottom:8px;"></div>
+      <div class="row" style="margin-bottom:8px;">
         <label style="width:120px;">Coach voice</label>
         <select id="voiceSelect" style="flex:1;max-width:240px;"><option>Default</option></select>
       </div>
@@ -262,6 +271,20 @@
       <h2>Recent workouts</h2>
       <ul id="historyList"></ul>
     </div>
+  </section>
+
+  <!-- ============ VOICE RECORDING SCREEN ============ -->
+  <section id="recordScreen" style="display:none;flex-direction:column;gap:14px;">
+    <div class="card">
+      <h2>Record your coach voice <span id="recProgress" style="float:right;color:var(--accent);"></span></h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">
+        Tap ● next to a phrase, say it with energy, then tap ■ to stop.
+        Say the words however you like — the text is just a suggestion.
+        Phrases you skip will use the phone voice instead.
+      </p>
+      <div id="clipList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+    <button class="big-btn" id="recordDoneBtn">✓ Done recording</button>
   </section>
 
   <!-- ============ WORKOUT SCREEN ============ -->
@@ -389,7 +412,14 @@ const Coach = {
     if (this.voice) { u.voice = this.voice; u.lang = this.voice.lang; }
   },
 
-  speak(text, { duck = true } = {}) {
+  useMyVoice() {
+    return document.getElementById("voiceSource").value === "mine";
+  },
+
+  speak(text, { duck = true, clip = null } = {}) {
+    if (this.useMyVoice() && clip && VoiceBank.has(clip)) {
+      return VoiceBank.play(clip, { duck });
+    }
     return new Promise(resolve => {
       if (!this.enabled) return resolve();
       const u = new SpeechSynthesisUtterance(text);
@@ -414,14 +444,22 @@ const Coach = {
   },
   sayNumber(n) {
     // Short, non-blocking count over the music.
+    if (this.useMyVoice() && VoiceBank.has("n" + n)) {
+      VoiceBank.play("n" + n, { duck: false });
+      return;
+    }
     if (!this.enabled) return;
     const u = new SpeechSynthesisUtterance(String(n));
     this.applyVoice(u);
     u.rate = 1.15;
     speechSynthesis.speak(u);
   },
-  quick(text) {
+  quick(text, clip = null) {
     // Short hype line spoken over the music without pausing anything.
+    if (this.useMyVoice() && clip && VoiceBank.has(clip)) {
+      VoiceBank.play(clip, { duck: false });
+      return;
+    }
     if (!this.enabled) return;
     const u = new SpeechSynthesisUtterance(text);
     this.applyVoice(u);
@@ -487,6 +525,103 @@ const Phrases = {
     `And we're done! ${sets} sets today. Seriously good work. Go get that protein.`,
     `That's a full session — ${sets} sets. Proud of you. Same time next workout?`
   ])
+};
+
+/* =====================================================================
+   YOUR OWN VOICE — record short clips for each coach phrase and the
+   app uses them instead of text-to-speech. Clips are stored in
+   IndexedDB on this device. Anything not recorded falls back to TTS.
+===================================================================== */
+const CLIP_DEFS = [
+  ...Array.from({ length: 25 }, (_, i) => ({ id: "n" + (i + 1), label: String(i + 1) })),
+  { id: "go",       label: "Go!" },
+  { id: "welcome",  label: "Let's get this workout started!" },
+  { id: "nextex",   label: "Time for the next exercise!" },
+  { id: "setstart", label: "New set — let's go!" },
+  { id: "halfway",  label: "Halfway there!" },
+  { id: "switch",   label: "Switch legs!" },
+  { id: "lastone",  label: "Last one!" },
+  { id: "setdone",  label: "Set done — take a break!" },
+  { id: "ten",      label: "10 seconds left!" },
+  { id: "finish",   label: "Workout complete — great job!" },
+  { id: "paused",   label: "Paused." },
+  { id: "resume",   label: "Let's keep going!" }
+];
+
+const VoiceBank = {
+  DB: "gymCoachVoice", STORE: "clips",
+  db: null,
+  cache: {},
+  async init() {
+    try {
+      this.db = await new Promise((res, rej) => {
+        const r = indexedDB.open(this.DB, 1);
+        r.onupgradeneeded = () => r.result.createObjectStore(this.STORE);
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      });
+      const tx = this.db.transaction(this.STORE);
+      const store = tx.objectStore(this.STORE);
+      const keys = store.getAllKeys();
+      const vals = store.getAll();
+      await new Promise(res => { tx.oncomplete = res; tx.onerror = res; });
+      (keys.result || []).forEach((k, i) => { this.cache[k] = vals.result[i]; });
+    } catch {}
+  },
+  count() { return Object.keys(this.cache).length; },
+  has(id) { return !!this.cache[id]; },
+  async save(id, blob) {
+    this.cache[id] = blob;
+    if (!this.db) return;
+    try {
+      this.db.transaction(this.STORE, "readwrite").objectStore(this.STORE).put(blob, id);
+    } catch {}
+  },
+  play(id, { duck = true } = {}) {
+    return new Promise(resolve => {
+      const blob = this.cache[id];
+      if (!blob) return resolve(false);
+      const a = new Audio(URL.createObjectURL(blob));
+      const done = () => { if (duck) Music.unduck(); URL.revokeObjectURL(a.src); resolve(true); };
+      if (duck) Music.duck();
+      a.onended = done;
+      a.onerror = done;
+      a.play().catch(done);
+    });
+  }
+};
+
+const Recorder = {
+  active: null, mr: null, stream: null,
+  async toggle(id) {
+    if (this.active === id) return this.stop();
+    if (this.active) this.stop();
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      alert("I need microphone permission to record your voice — check your browser settings.");
+      return;
+    }
+    this.stream = stream;
+    this.active = id;
+    UI.markRecording(id, true);
+    const chunks = [];
+    this.mr = new MediaRecorder(stream);
+    this.mr.ondataavailable = e => chunks.push(e.data);
+    this.mr.onstop = async () => {
+      const blob = new Blob(chunks, { type: this.mr.mimeType || "audio/webm" });
+      await VoiceBank.save(id, blob);
+      stream.getTracks().forEach(t => t.stop());
+      UI.renderClipList();
+    };
+    this.mr.start();
+  },
+  stop() {
+    if (!this.active) return;
+    this.active = null;
+    try { this.mr.stop(); } catch {}
+  }
 };
 
 /* =====================================================================
@@ -834,7 +969,7 @@ const Engine = {
     this.paused = false;
     UI.showWorkout();
     this.requestWakeLock();
-    await Coach.speak(Phrases.welcome(this.program.name, this.program.exercises.length));
+    await Coach.speak(Phrases.welcome(this.program.name, this.program.exercises.length), { clip: "welcome" });
     this.beginExercise();
   },
 
@@ -855,7 +990,7 @@ const Engine = {
       : ex.perLeg
         ? `${ex.sets} sets of ${ex.reps / 2} reps per leg`
         : `${ex.sets} sets of ${ex.reps} reps`;
-    await Coach.speak(Phrases.nextUp(ex.name, what, ex.tip || ""));
+    await Coach.speak(Phrases.nextUp(ex.name, what, ex.tip || ""), { clip: "nextex" });
     this.beginSet();
   },
 
@@ -864,7 +999,7 @@ const Engine = {
     const ex = this.currentExercise();
     UI.setPhase("work");
     UI.setSetInfo(ex, this.setIdx);
-    await Coach.speak(Phrases.setStart(this.setIdx + 1));
+    await Coach.speak(Phrases.setStart(this.setIdx + 1), { clip: "setstart" });
     Music.play();
     await this.countdown(3);
     if (ex.type === "time") this.runTimedSet(ex);
@@ -881,7 +1016,7 @@ const Engine = {
         c--;
         if (c <= 0) {
           clearInterval(this.timer);
-          Coach.sayNumber("Go!");
+          Coach.quick("Go!", "go");
           resolve();
         } else {
           UI.setCounter(c, "starting in");
@@ -904,9 +1039,9 @@ const Engine = {
       UI.setProgress(rep / ex.reps);
       if (voiceMode === "all") Coach.sayNumber(rep);
       else if (voiceMode === "milestones" && (rep % 5 === 0 || rep === ex.reps)) Coach.sayNumber(rep);
-      if (ex.perLeg && rep === ex.reps / 2) Coach.quick("Switch legs!");
-      else if (ex.reps >= 8 && rep === Math.ceil(ex.reps / 2)) Coach.quick(Phrases.pick(Phrases.halfway));
-      else if (rep === ex.reps - 1) Coach.quick(Phrases.pick(Phrases.lastRep));
+      if (ex.perLeg && rep === ex.reps / 2) Coach.quick("Switch legs!", "switch");
+      else if (ex.reps >= 8 && rep === Math.ceil(ex.reps / 2)) Coach.quick(Phrases.pick(Phrases.halfway), "halfway");
+      else if (rep === ex.reps - 1) Coach.quick(Phrases.pick(Phrases.lastRep), "lastone");
       if (rep >= ex.reps) {
         clearInterval(this.timer);
         this.finishSet();
@@ -924,7 +1059,7 @@ const Engine = {
       remaining--;
       UI.setCounter(remaining, "seconds — hold it!");
       UI.setProgress(1 - remaining / ex.seconds);
-      if (remaining === Math.floor(ex.seconds / 2)) Coach.speak("Halfway there!");
+      if (remaining === Math.floor(ex.seconds / 2)) Coach.quick("Halfway there!", "halfway");
       else if (remaining === 5) Coach.sayNumber(5);
       else if (remaining > 0 && remaining < 5) Coach.sayNumber(remaining);
       if (remaining <= 0) {
@@ -945,12 +1080,12 @@ const Engine = {
     if (lastSet) {
       // Rest, then move to the next exercise/machine.
       const next = this.program.exercises[this.exIdx + 1];
-      await Coach.speak(`${Phrases.exerciseDone(ex.name)} ${Phrases.moveOn(next.name)}`);
+      await Coach.speak(`${Phrases.exerciseDone(ex.name)} ${Phrases.moveOn(next.name)}`, { clip: "setdone" });
       await this.rest(ex.rest, `Move on to ${next.name}`);
       this.exIdx++;
       this.beginExercise();
     } else {
-      await Coach.speak(Phrases.pick(Phrases.setDone));
+      await Coach.speak(Phrases.pick(Phrases.setDone), { clip: "setdone" });
       await this.rest(ex.rest, "Next set");
       this.setIdx++;
       this.beginSet();
@@ -970,7 +1105,7 @@ const Engine = {
         remaining--;
         UI.setCounter(remaining, "rest — breathe");
         UI.setProgress(1 - remaining / seconds);
-        if (remaining === 10) Coach.speak("10 seconds left.");
+        if (remaining === 10) Coach.speak("10 seconds left.", { clip: "ten" });
         if (remaining <= 0) {
           clearInterval(this.timer);
           UI.setUpNext("");
@@ -995,8 +1130,8 @@ const Engine = {
 
   togglePause() {
     this.paused = !this.paused;
-    if (this.paused) { Music.pause(); Coach.speak("Paused.", { duck: false }); }
-    else { Music.play(); Coach.speak("Resuming.", { duck: false }); }
+    if (this.paused) { Music.pause(); Coach.speak("Paused.", { duck: false, clip: "paused" }); }
+    else { Music.play(); Coach.speak("Resuming.", { duck: false, clip: "resume" }); }
     UI.setPauseLabel(this.paused);
   },
 
@@ -1008,7 +1143,7 @@ const Engine = {
     UI.setPhase("done");
     UI.setCounter("🎉", "");
     UI.setProgress(1);
-    await Coach.speak(Phrases.finish(this.doneSets));
+    await Coach.speak(Phrases.finish(this.doneSets), { clip: "finish" });
     setTimeout(() => UI.showHome(), 2500);
     this.wakeLock?.release().catch(() => {});
   },
@@ -1107,6 +1242,34 @@ const UI = {
 
     Coach.initVoices();
 
+    // your-own-voice recording
+    const srcSel = document.getElementById("voiceSource");
+    srcSel.value = localStorage.getItem("gymCoach.voiceSource") || "tts";
+    const voiceNote = () => {
+      document.getElementById("voiceNote").textContent =
+        srcSel.value === "mine"
+          ? (VoiceBank.count()
+              ? `${VoiceBank.count()}/${CLIP_DEFS.length} phrases recorded — unrecorded ones use the phone voice.`
+              : "Nothing recorded yet — tap 🎙 Record to make your voice packs.")
+          : "";
+    };
+    srcSel.onchange = () => {
+      localStorage.setItem("gymCoach.voiceSource", srcSel.value);
+      voiceNote();
+    };
+    VoiceBank.init().then(voiceNote);
+    document.getElementById("recordVoiceBtn").onclick = () => this.showRecord();
+    document.getElementById("recordDoneBtn").onclick = () => {
+      Recorder.stop();
+      if (VoiceBank.count()) {
+        srcSel.value = "mine";
+        localStorage.setItem("gymCoach.voiceSource", "mine");
+      }
+      document.getElementById("recordScreen").style.display = "none";
+      document.getElementById("homeScreen").style.display = "flex";
+      voiceNote();
+    };
+
     document.getElementById("volSlider").oninput = e =>
       Music.setVolume(e.target.value / 100);
 
@@ -1137,8 +1300,53 @@ const UI = {
 
   showWorkout() {
     document.getElementById("homeScreen").style.display = "none";
+    document.getElementById("recordScreen").style.display = "none";
     document.getElementById("workoutScreen").style.display = "flex";
     document.getElementById("banner").style.display = "none";
+  },
+  showRecord() {
+    document.getElementById("homeScreen").style.display = "none";
+    document.getElementById("recordScreen").style.display = "flex";
+    this.renderClipList();
+  },
+  renderClipList() {
+    const wrap = document.getElementById("clipList");
+    wrap.innerHTML = "";
+    for (const def of CLIP_DEFS) {
+      const row = document.createElement("div");
+      row.dataset.clip = def.id;
+      row.style.cssText = "display:flex;align-items:center;gap:8px;";
+      const status = document.createElement("span");
+      status.style.width = "22px";
+      status.textContent = VoiceBank.has(def.id) ? "✅" : "⚪";
+      const label = document.createElement("span");
+      label.style.cssText = "flex:1;font-size:14px;";
+      label.textContent = `“${def.label}”`;
+      const rec = document.createElement("button");
+      rec.className = "ghost-btn";
+      rec.style.color = "var(--danger)";
+      rec.style.minWidth = "44px";
+      rec.textContent = "●";
+      rec.onclick = () => Recorder.toggle(def.id);
+      const play = document.createElement("button");
+      play.className = "ghost-btn";
+      play.style.minWidth = "44px";
+      play.textContent = "▶";
+      play.disabled = !VoiceBank.has(def.id);
+      play.onclick = () => VoiceBank.play(def.id, { duck: false });
+      row.append(status, label, rec, play);
+      wrap.appendChild(row);
+    }
+    document.getElementById("recProgress").textContent =
+      `${VoiceBank.count()}/${CLIP_DEFS.length}`;
+  },
+  markRecording(id, on) {
+    const row = document.querySelector(`#clipList [data-clip="${id}"]`);
+    if (!row) return;
+    const rec = row.querySelectorAll("button")[0];
+    rec.textContent = on ? "■" : "●";
+    row.style.outline = on ? "1px solid var(--danger)" : "none";
+    row.style.borderRadius = "8px";
   },
   showHome() {
     document.getElementById("workoutScreen").style.display = "none";

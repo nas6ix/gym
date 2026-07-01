@@ -7,6 +7,7 @@ Open it on your phone at the gym and it:
 - **Knows when you're at the gym** — tap "📍 set gym" once at your gym to save the location. Next time you open the page there, it greets you and offers to start your workout.
 - **Tells you what to do** — a voice coach announces each exercise ("Next up: Squats — 3 sets of 12"), with a quick form tip. It auto-picks the most natural voice on your device (Neural/Natural voices), and you can choose a different one in Coach settings. The lines are varied and hype — no robotic script.
 - **Counts your reps out loud** — pick your pace (2–4 seconds per rep) and it counts every rep (or every 5th, or silently on screen).
+- **Use your own voice** — record yourself saying each coach phrase (numbers, "Go!", "Switch legs!", "Set done — take a break!"…) via 🎙 Record in Coach settings, and the coach speaks in *your* voice. Clips are stored on-device (IndexedDB); anything you skip falls back to the phone voice.
 - **Tells you when to rest** — automatic rest timers between sets, with a "10 seconds left" heads-up.
 - **Plays music during sets** — four options:
   - **🟢 My Spotify** — paste any Spotify playlist/album/song link once and it plays through the official Spotify embed. Full songs when you're logged in to Spotify in the browser (previews otherwise). The coach pauses/resumes it around announcements (Spotify's embed has no volume control).
