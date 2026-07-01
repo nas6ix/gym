@@ -208,6 +208,7 @@
       <h2>2 · Music</h2>
       <div class="row">
         <select id="musicMode">
+          <option value="youtube">🦉 Drake mix (YouTube)</option>
           <option value="beat">Built-in workout beat</option>
           <option value="files">My own songs (pick files)</option>
           <option value="none">No music</option>
@@ -215,7 +216,11 @@
         <button class="ghost-btn" id="pickFilesBtn" style="display:none;">Choose songs…</button>
         <input type="file" id="fileInput" accept="audio/*" multiple>
       </div>
-      <div class="file-note" id="fileNote"></div>
+      <div class="row" id="ytRow" style="margin-top:10px;">
+        <input type="text" id="ytUrl" placeholder="Optional: paste any YouTube song/playlist link"
+               style="flex:1;background:var(--panel2);color:var(--text);border:1px solid #30363d;border-radius:8px;padding:8px;font-size:13px;">
+      </div>
+      <div class="file-note" id="fileNote">Leave the box empty for the built-in Drake playlist. Streams via YouTube, so it needs internet — for offline, use "My own songs".</div>
       <div class="row" style="margin-top:10px;">
         <label>Volume</label>
         <input type="range" id="volSlider" min="0" max="100" value="70">
@@ -224,6 +229,10 @@
 
     <div class="card">
       <h2>3 · Coach settings</h2>
+      <div class="row" style="margin-bottom:8px;">
+        <label style="width:120px;">Coach voice</label>
+        <select id="voiceSelect" style="flex:1;max-width:240px;"><option>Default</option></select>
+      </div>
       <div class="row" style="margin-bottom:8px;">
         <label style="width:120px;">Rep pace</label>
         <select id="repPace">
@@ -268,7 +277,8 @@
   </section>
 </main>
 
-<footer>Voice + music web coach · works offline once loaded · your data stays on this device</footer>
+<footer>Voice + music web coach · your data stays on this device</footer>
+<div id="ytPlayer" style="position:fixed;left:-9999px;bottom:0;width:1px;height:1px;"></div>
 
 <script>
 "use strict";
@@ -328,14 +338,55 @@ const PROGRAMS = {
 
 /* =====================================================================
    SPEECH — the coach's voice. Music is ducked while speaking.
+   Auto-picks the most natural voice on the device (Neural/Natural/
+   Premium voices first), with a picker so you can change it.
 ===================================================================== */
 const Coach = {
   enabled: "speechSynthesis" in window,
+  voice: null,
+
+  initVoices() {
+    if (!this.enabled) return;
+    const sel = document.getElementById("voiceSelect");
+    const score = v =>
+      (/natural|neural|premium|enhanced/i.test(v.name) ? 4 : 0) +
+      (/google|samantha|aria|jenny|guy|ryan|daniel|karen|matilda/i.test(v.name) ? 2 : 0) +
+      (v.lang === "en-US" ? 1 : 0);
+    const populate = () => {
+      const voices = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang));
+      if (!voices.length) return;
+      voices.sort((a, b) => score(b) - score(a));
+      sel.innerHTML = "";
+      voices.forEach((v, i) => {
+        const o = document.createElement("option");
+        o.value = v.name;
+        o.textContent = v.name.replace(/^(Microsoft|Google)\s*/,"") + (i === 0 ? " ⭐" : "");
+        sel.appendChild(o);
+      });
+      const saved = localStorage.getItem("gymCoach.voice");
+      const chosen = voices.find(v => v.name === saved) || voices[0];
+      sel.value = chosen.name;
+      this.voice = chosen;
+    };
+    populate();
+    speechSynthesis.onvoiceschanged = populate;
+    sel.onchange = () => {
+      this.voice = speechSynthesis.getVoices().find(v => v.name === sel.value) || null;
+      localStorage.setItem("gymCoach.voice", sel.value);
+      this.speak(Phrases.pick(Phrases.voiceTest));
+    };
+  },
+
+  applyVoice(u) {
+    if (this.voice) { u.voice = this.voice; u.lang = this.voice.lang; }
+  },
+
   speak(text, { duck = true } = {}) {
     return new Promise(resolve => {
       if (!this.enabled) return resolve();
       const u = new SpeechSynthesisUtterance(text);
-      u.rate = 1.05;
+      this.applyVoice(u);
+      u.rate = 1.0;
       u.pitch = 1.0;
       u.volume = 1.0;
       let restored = false;
@@ -349,7 +400,7 @@ const Coach = {
       u.onend = restore;
       u.onerror = restore;
       // Safety net: some mobile browsers occasionally drop onend.
-      setTimeout(restore, 1000 + text.length * 90);
+      setTimeout(restore, 1500 + text.length * 90);
       speechSynthesis.speak(u);
     });
   },
@@ -357,10 +408,77 @@ const Coach = {
     // Short, non-blocking count over the music.
     if (!this.enabled) return;
     const u = new SpeechSynthesisUtterance(String(n));
-    u.rate = 1.2;
+    this.applyVoice(u);
+    u.rate = 1.15;
+    speechSynthesis.speak(u);
+  },
+  quick(text) {
+    // Short hype line spoken over the music without pausing anything.
+    if (!this.enabled) return;
+    const u = new SpeechSynthesisUtterance(text);
+    this.applyVoice(u);
+    u.rate = 1.05;
     speechSynthesis.speak(u);
   },
   stop() { if (this.enabled) speechSynthesis.cancel(); }
+};
+
+/* =====================================================================
+   PHRASES — varied, human coach lines so it never sounds like a
+   robot reading a script. A random one is picked each time.
+===================================================================== */
+const Phrases = {
+  pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; },
+  voiceTest: [
+    "Hey! This is what I sound like. Let's get to work.",
+    "What's up! Ready when you are.",
+    "Yeah, this is the one. Let's train."
+  ],
+  welcome: (name, n) => Phrases.pick([
+    `Let's go! ${name} day — ${n} exercises. We got this.`,
+    `Welcome back. Today is ${name}: ${n} exercises. Time to work.`,
+    `Alright, ${name} time. ${n} exercises on the board. Lock in.`
+  ]),
+  nextUp: (name, what, tip) => Phrases.pick([
+    `Next up, ${name}. ${what}. ${tip}`,
+    `Alright, moving to ${name}. We're doing ${what}. Remember — ${tip}`,
+    `Time for ${name}. ${what}. Quick tip: ${tip}`
+  ]),
+  setStart: n => Phrases.pick([
+    `Set ${n}. Let's get it.`,
+    `Okay, set ${n}. Here we go.`,
+    `Set ${n} — make it count.`
+  ]),
+  halfway: [
+    "Halfway! Keep pushing.",
+    "Halfway there — stay strong.",
+    "That's half. Don't slow down now."
+  ],
+  lastRep: [
+    "Last one — give me everything!",
+    "One more! Finish strong!",
+    "Final rep — all you!"
+  ],
+  setDone: [
+    "And done! Nice set. Take a breather.",
+    "That's it! Good work — shake it out.",
+    "Set complete. Catch your breath, you earned it."
+  ],
+  exerciseDone: name => Phrases.pick([
+    `${name}, done! You crushed that.`,
+    `And that's a wrap on ${name}. Strong work!`,
+    `${name} finished. Looking good out there.`
+  ]),
+  moveOn: next => Phrases.pick([
+    `When the timer's up, head over to ${next}.`,
+    `Next stop: ${next}. Grab some water on the way.`,
+    `After this break we're hitting ${next}.`
+  ]),
+  finish: sets => Phrases.pick([
+    `Workout complete! ${sets} sets in the books. That's how it's done — see you next time.`,
+    `And we're done! ${sets} sets today. Seriously good work. Go get that protein.`,
+    `That's a full session — ${sets} sets. Proud of you. Same time next workout?`
+  ])
 };
 
 /* =====================================================================
@@ -368,7 +486,7 @@ const Coach = {
    built-in Web-Audio beat so it works with zero setup.
 ===================================================================== */
 const Music = {
-  mode: "beat",            // beat | files | none
+  mode: "beat",            // beat | files | youtube | none
   files: [],
   trackIndex: 0,
   audioEl: null,
@@ -387,6 +505,9 @@ const Music = {
     const v = this.ducked ? this.baseVol * 0.15 : this.baseVol;
     if (this.audioEl) this.audioEl.volume = v;
     if (this.beatGain) this.beatGain.gain.setTargetAtTime(v * 0.5, this.ctx.currentTime, 0.1);
+    if (this.ytPlayer?.setVolume) {
+      try { this.ytPlayer.setVolume(Math.round(v * 100)); } catch {}
+    }
   },
   duck()   { this.ducked = true;  this.applyVolume(); },
   unduck() { this.ducked = false; this.applyVolume(); },
@@ -396,6 +517,8 @@ const Music = {
     this.playing = true;
     if (this.mode === "files" && this.files.length) {
       this.playFile(this.trackIndex);
+    } else if (this.mode === "youtube") {
+      this.playYT();
     } else if (this.mode === "beat") {
       this.startBeat();
     }
@@ -405,13 +528,81 @@ const Music = {
     if (!this.playing) return;
     this.playing = false;
     if (this.audioEl) this.audioEl.pause();
+    if (this.ytPlayer?.pauseVideo) { try { this.ytPlayer.pauseVideo(); } catch {} }
     this.stopBeat();
     UI.musicStatus(false);
   },
   stopAll() {
     this.pause();
     if (this.audioEl) { this.audioEl.src = ""; this.audioEl = null; }
+    if (this.ytPlayer?.stopVideo) { try { this.ytPlayer.stopVideo(); } catch {} }
+    this.ytStarted = false;
     this.trackIndex = 0;
+  },
+
+  /* ---- YouTube: built-in Drake playlist, or any pasted link ----
+     Streams through the official YouTube embed player (that keeps
+     it legal) and ducks its volume when the coach speaks.        */
+  DRAKE_IDS: [
+    "xpVfcZ0ZcFM", // God's Plan
+    "uxpDa-c-4Mc", // Hotline Bling
+    "JFm7YDVlqnI", // Laugh Now Cry Later
+    "RubBzkZzpUA", // Started From the Bottom
+    "DRS_PpOrUZ4"  // In My Feelings
+  ],
+  ytPlayer: null,
+  ytLoading: false,
+  ytStarted: false,
+  ensureYT(cb) {
+    if (this.ytPlayer) return cb();
+    const create = () => {
+      this.ytPlayer = new YT.Player("ytPlayer", {
+        height: "1", width: "1",
+        playerVars: { playsinline: 1 },
+        events: {
+          onReady: () => cb(),
+          // Unavailable/region-blocked video: skip to the next one.
+          onError: () => { try { this.ytPlayer.nextVideo(); } catch {} }
+        }
+      });
+    };
+    if (window.YT?.Player) return create();
+    window.onYouTubeIframeAPIReady = create;
+    if (!this.ytLoading) {
+      this.ytLoading = true;
+      const s = document.createElement("script");
+      s.src = "https://www.youtube.com/iframe_api";
+      s.onerror = () => {
+        UI.musicStatusText("Couldn't reach YouTube — check your connection.");
+        this.ytLoading = false;
+      };
+      document.head.appendChild(s);
+    }
+  },
+  playYT() {
+    this.ensureYT(() => {
+      if (!this.playing) return;   // workout may have been ended meanwhile
+      const p = this.ytPlayer;
+      this.applyVolume();
+      if (!this.ytStarted) {
+        const src = this.parseYTUrl(document.getElementById("ytUrl").value.trim());
+        if (src?.playlistId) p.loadPlaylist({ list: src.playlistId, listType: "playlist" });
+        else if (src?.videoId) p.loadVideoById(src.videoId);
+        else p.loadPlaylist(this.DRAKE_IDS);
+        try { p.setLoop(true); p.setShuffle(true); } catch {}
+        this.ytStarted = true;
+      } else {
+        p.playVideo();
+      }
+    });
+  },
+  parseYTUrl(url) {
+    if (!url) return null;
+    const list = url.match(/[?&]list=([\w-]+)/);
+    if (list) return { playlistId: list[1] };
+    const vid = url.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/);
+    if (vid) return { videoId: vid[1] };
+    return null;
   },
 
   /* ---- user file playlist ---- */
@@ -564,7 +755,7 @@ const Engine = {
     this.paused = false;
     UI.showWorkout();
     this.requestWakeLock();
-    await Coach.speak(`Welcome to your ${this.program.name} workout. ${this.program.exercises.length} exercises today. Let's go!`);
+    await Coach.speak(Phrases.welcome(this.program.name, this.program.exercises.length));
     this.beginExercise();
   },
 
@@ -583,7 +774,7 @@ const Engine = {
     const what = ex.type === "time"
       ? `${ex.sets} sets of ${ex.seconds} seconds`
       : `${ex.sets} sets of ${ex.reps} reps`;
-    await Coach.speak(`Next up: ${ex.name}. ${what}. ${ex.tip || ""}`);
+    await Coach.speak(Phrases.nextUp(ex.name, what, ex.tip || ""));
     this.beginSet();
   },
 
@@ -592,7 +783,7 @@ const Engine = {
     const ex = this.currentExercise();
     UI.setPhase("work");
     UI.setSetInfo(ex, this.setIdx);
-    await Coach.speak(`Set ${this.setIdx + 1}. Get ready.`);
+    await Coach.speak(Phrases.setStart(this.setIdx + 1));
     Music.play();
     await this.countdown(3);
     if (ex.type === "time") this.runTimedSet(ex);
@@ -632,6 +823,8 @@ const Engine = {
       UI.setProgress(rep / ex.reps);
       if (voiceMode === "all") Coach.sayNumber(rep);
       else if (voiceMode === "milestones" && (rep % 5 === 0 || rep === ex.reps)) Coach.sayNumber(rep);
+      if (ex.reps >= 8 && rep === Math.ceil(ex.reps / 2)) Coach.quick(Phrases.pick(Phrases.halfway));
+      else if (rep === ex.reps - 1) Coach.quick(Phrases.pick(Phrases.lastRep));
       if (rep >= ex.reps) {
         clearInterval(this.timer);
         this.finishSet();
@@ -670,12 +863,12 @@ const Engine = {
     if (lastSet) {
       // Rest, then move to the next exercise/machine.
       const next = this.program.exercises[this.exIdx + 1];
-      await Coach.speak(`Great job, ${ex.name} done!`);
+      await Coach.speak(`${Phrases.exerciseDone(ex.name)} ${Phrases.moveOn(next.name)}`);
       await this.rest(ex.rest, `Move on to ${next.name}`);
       this.exIdx++;
       this.beginExercise();
     } else {
-      await Coach.speak(`Set ${this.setIdx + 1} done. Take a break.`);
+      await Coach.speak(Phrases.pick(Phrases.setDone));
       await this.rest(ex.rest, "Next set");
       this.setIdx++;
       this.beginSet();
@@ -733,7 +926,7 @@ const Engine = {
     UI.setPhase("done");
     UI.setCounter("🎉", "");
     UI.setProgress(1);
-    await Coach.speak(`Workout complete! ${this.doneSets} sets done. Amazing work — see you next time.`);
+    await Coach.speak(Phrases.finish(this.doneSets));
     setTimeout(() => UI.showHome(), 2500);
     this.wakeLock?.release().catch(() => {});
   },
@@ -794,16 +987,30 @@ const UI = {
     const modeSel = document.getElementById("musicMode");
     const pickBtn = document.getElementById("pickFilesBtn");
     const fileInput = document.getElementById("fileInput");
-    modeSel.onchange = () => {
+    const ytRow = document.getElementById("ytRow");
+    const fileNote = document.getElementById("fileNote");
+    const NOTES = {
+      youtube: `Leave the box empty for the built-in Drake playlist. Streams via YouTube, so it needs internet — for offline, use "My own songs".`,
+      files: "Pick MP3s from your phone — they play offline with perfect ducking.",
+      beat: "A generated 128 BPM beat — works anywhere, no internet needed.",
+      none: ""
+    };
+    const applyMode = () => {
       Music.mode = modeSel.value;
       pickBtn.style.display = modeSel.value === "files" ? "" : "none";
+      ytRow.style.display = modeSel.value === "youtube" ? "" : "none";
+      fileNote.textContent = NOTES[modeSel.value];
     };
+    modeSel.onchange = applyMode;
+    applyMode();
     pickBtn.onclick = () => fileInput.click();
     fileInput.onchange = () => {
       Music.files = Array.from(fileInput.files);
-      document.getElementById("fileNote").textContent =
-        Music.files.length ? `${Music.files.length} song(s) loaded ✔` : "";
+      fileNote.textContent =
+        Music.files.length ? `${Music.files.length} song(s) loaded ✔` : NOTES.files;
     };
+
+    Coach.initVoices();
 
     document.getElementById("volSlider").oninput = e =>
       Music.setVolume(e.target.value / 100);
@@ -880,9 +1087,13 @@ const UI = {
     document.getElementById("pauseBtn").textContent = paused ? "▶ Resume" : "⏸ Pause";
   },
   musicStatus(playing) {
+    const label = Music.mode === "youtube" ? "Drake on deck 🦉" : "music playing";
     document.getElementById("musicStatus").innerHTML = playing
-      ? `<span class="eq"><i></i><i></i><i></i></span>music playing — ducks when the coach speaks`
+      ? `<span class="eq"><i></i><i></i><i></i></span>${label} — ducks when the coach speaks`
       : "";
+  },
+  musicStatusText(text) {
+    document.getElementById("musicStatus").textContent = text;
   },
   updateGymBadge(state) {
     const b = document.getElementById("gymBadge");

@@ -5,10 +5,15 @@ A voice-guided workout website that runs entirely in your browser — no app, no
 Open it on your phone at the gym and it:
 
 - **Knows when you're at the gym** — tap "📍 set gym" once at your gym to save the location. Next time you open the page there, it greets you and offers to start your workout.
-- **Tells you what to do** — a voice coach announces each exercise ("Next up: Squats — 3 sets of 12"), with a quick form tip.
+- **Tells you what to do** — a voice coach announces each exercise ("Next up: Squats — 3 sets of 12"), with a quick form tip. It auto-picks the most natural voice on your device (Neural/Natural voices), and you can choose a different one in Coach settings. The lines are varied and hype — no robotic script.
 - **Counts your reps out loud** — pick your pace (2–4 seconds per rep) and it counts every rep (or every 5th, or silently on screen).
 - **Tells you when to rest** — automatic rest timers between sets, with a "10 seconds left" heads-up.
-- **Plays music during sets** — either your own songs (pick files from your phone) or a built-in generated workout beat. The music automatically ducks down whenever the coach speaks, then comes back.
+- **Plays music during sets** — three options:
+  - **🦉 Drake mix** — streams a built-in Drake playlist through the official YouTube embed player (needs internet). You can also paste any YouTube song or playlist link instead.
+  - **Your own songs** — pick MP3s from your phone; plays offline.
+  - **Built-in beat** — a generated 128 BPM workout beat, works anywhere.
+
+  Whichever you pick, the music automatically ducks down whenever the coach speaks, then comes back.
 - **Tells you when to move on** — "Great job, Squats done! Move on to Leg Press."
 - **Remembers your workouts** — recent sessions are saved on your device.
 
