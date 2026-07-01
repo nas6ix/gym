@@ -39,3 +39,13 @@ It's a single `index.html` file. Easiest way to get it on your phone:
 > **Note:** the gym-location feature needs HTTPS (GitHub Pages provides it) and location permission. Voice uses your browser's built-in speech — the first "Start workout" tap enables audio.
 
 Everything (gym location, history, settings) is stored in your browser's localStorage — nothing leaves your device.
+
+## 💌 `foryou.html` — a personal page with your voice
+
+A separate little page (`foryou.html`) you can personalize and send to someone special. Open it, tap **✎ Personalize**, and you can:
+
+- **Record your voice** right in the browser — it becomes a "press play, I recorded this for you" button at the top.
+- Edit all the words: their name, the reasons, your letter, an optional Spotify song, and a reply button (e.g. `sms:` or `mailto:`).
+- Tap **⬇ Download my page** to get a single `for-you.html` file with your voice and words **baked inside it** — send that file to them (or upload it to the repo for a link) and they'll hear you on any device. No account, no server; the audio rides along inside the HTML.
+
+> Recording needs microphone permission, and the "Download my page" step works when the page is opened via its web link (not a file opened directly from disk).

@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>hey, this is for you</title>
 <style>
-  /* ============================================================
-     ✏️  EDIT ONLY THE PART LABELED "YOUR STUFF" IN THE SCRIPT
-         AT THE BOTTOM. YOU DON'T NEED TO TOUCH ANYTHING ELSE.
-     ============================================================ */
   :root {
     --bg1: #1a0b2e;
     --bg2: #2d1b4e;
@@ -29,10 +25,7 @@
   }
   .hearts { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
   .hearts span {
-    position: absolute;
-    bottom: -40px;
-    font-size: 20px;
-    opacity: 0;
+    position: absolute; bottom: -40px; font-size: 20px; opacity: 0;
     animation: rise linear infinite;
   }
   @keyframes rise {
@@ -41,15 +34,9 @@
     100% { transform: translateY(-110vh) scale(1.1) rotate(40deg); opacity: 0; }
   }
   section {
-    position: relative;
-    z-index: 1;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 40px 24px;
+    position: relative; z-index: 1; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 40px 24px;
   }
   .fade { opacity: 0; transform: translateY(28px); transition: opacity 1s ease, transform 1s ease; }
   .fade.show { opacity: 1; transform: none; }
@@ -57,32 +44,22 @@
   h1 { font-size: clamp(38px, 9vw, 76px); font-weight: 400; line-height: 1.1; }
   h1 .name { color: var(--accent); font-style: italic; }
   .sub { color: var(--muted); font-size: 18px; margin-top: 20px; max-width: 30ch; }
-  .scrollcue { margin-top: 46px; color: var(--muted); font-size: 13px; animation: bob 1.8s ease-in-out infinite; font-family: -apple-system, sans-serif; }
+  .scrollcue { margin-top: 40px; color: var(--muted); font-size: 13px; animation: bob 1.8s ease-in-out infinite; font-family: -apple-system, sans-serif; }
   @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
 
   h2 { font-size: clamp(26px, 6vw, 40px); font-weight: 400; margin-bottom: 30px; }
   h2 em { color: var(--accent); font-style: italic; }
 
   .reason {
-    background: rgba(255,255,255,.05);
-    border: 1px solid rgba(255,126,182,.3);
-    border-radius: 18px;
-    padding: 20px 24px;
-    margin: 12px auto;
-    max-width: 460px;
-    font-size: 19px;
-    backdrop-filter: blur(4px);
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,126,182,.3);
+    border-radius: 18px; padding: 20px 24px; margin: 12px auto; max-width: 460px;
+    font-size: 19px; backdrop-filter: blur(4px);
   }
   .reason .num { color: var(--accent); font-style: italic; margin-right: 8px; }
 
   .letter {
-    background: rgba(255,255,255,.06);
-    border-radius: 20px;
-    padding: 34px 30px;
-    max-width: 520px;
-    font-size: 19px;
-    text-align: left;
-    white-space: pre-line;
+    background: rgba(255,255,255,.06); border-radius: 20px; padding: 34px 30px;
+    max-width: 520px; font-size: 19px; text-align: left; white-space: pre-line;
     box-shadow: 0 20px 60px rgba(0,0,0,.35);
   }
   .signoff { margin-top: 24px; font-style: italic; color: var(--accent2); font-size: 22px; text-align: right; }
@@ -91,24 +68,48 @@
   .song iframe { border-radius: 14px; max-width: 100%; }
   .song .why { color: var(--muted); font-size: 15px; margin-bottom: 14px; font-style: italic; }
 
-  .final h1 { margin-bottom: 20px; }
   .btn {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 14px 30px;
-    border-radius: 999px;
-    background: var(--accent);
-    color: #2d1b4e;
-    text-decoration: none;
-    font-family: -apple-system, sans-serif;
-    font-weight: 600;
-    font-size: 17px;
-    border: none;
-    cursor: pointer;
-    transition: transform .15s ease;
+    display: inline-block; margin-top: 10px; padding: 14px 30px; border-radius: 999px;
+    background: var(--accent); color: #2d1b4e; text-decoration: none;
+    font-family: -apple-system, sans-serif; font-weight: 600; font-size: 17px;
+    border: none; cursor: pointer; transition: transform .15s ease;
   }
   .btn:hover { transform: scale(1.05); }
+  .btn.ghost { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+  .voiceNote { color: var(--muted); font-size: 14px; font-family: -apple-system, sans-serif; margin-top: 10px; font-style: italic; }
+  .final h1 { margin-bottom: 20px; }
   .tiny { color: var(--muted); font-size: 13px; margin-top: 30px; font-family: -apple-system, sans-serif; }
+
+  /* ---- personalize editor ---- */
+  #editToggle {
+    position: fixed; z-index: 20; right: 16px; bottom: 16px;
+    background: rgba(0,0,0,.45); color: var(--accent2); border: 1px solid var(--accent);
+    border-radius: 999px; padding: 10px 16px; font-family: -apple-system, sans-serif;
+    font-size: 14px; cursor: pointer; backdrop-filter: blur(6px);
+  }
+  #editor {
+    position: fixed; inset: 0; z-index: 30; background: rgba(10,4,20,.92);
+    backdrop-filter: blur(8px); overflow-y: auto; display: none; padding: 24px;
+  }
+  #editor .panel {
+    max-width: 560px; margin: 0 auto; background: #22103b;
+    border: 1px solid rgba(255,126,182,.35); border-radius: 18px; padding: 22px;
+    font-family: -apple-system, sans-serif;
+  }
+  #editor h3 { color: var(--accent); font-family: -apple-system, sans-serif; font-weight: 700; margin-bottom: 4px; }
+  #editor p.hint { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+  #editor label { display: block; color: var(--accent2); font-size: 13px; margin: 14px 0 5px; font-weight: 600; }
+  #editor input[type=text], #editor textarea {
+    width: 100%; background: #160a28; color: var(--text); border: 1px solid #3a2456;
+    border-radius: 10px; padding: 10px 12px; font-size: 15px; font-family: inherit; resize: vertical;
+  }
+  #editor textarea { min-height: 90px; }
+  .voicebox { background: #160a28; border: 1px solid #3a2456; border-radius: 12px; padding: 16px; margin-top: 6px; }
+  .voicebox .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .rec-dot { color: #ff5d5d; }
+  .editActions { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+  .editActions button { flex: 1; min-width: 130px; }
+  audio { width: 100%; margin-top: 12px; }
 </style>
 </head>
 <body>
@@ -119,8 +120,11 @@
 <section>
   <div class="fade">
     <div class="kicker" id="kicker"></div>
-    <h1>Hey <span class="name" id="crushName"></span>,<br id="br1"><span id="opener"></span></h1>
+    <h1>Hey <span class="name" id="crushName"></span>,<br><span id="opener"></span></h1>
     <p class="sub" id="subline"></p>
+    <div id="voicePlay" style="display:none;">
+      <button class="btn" id="voiceBtn">▶ press play — I recorded this for you</button>
+    </div>
     <div class="scrollcue">scroll down ↓</div>
   </div>
 </section>
@@ -154,107 +158,157 @@
   </div>
 </section>
 
+<button id="editToggle">✎ Personalize</button>
+
+<!-- personalize editor -->
+<div id="editor">
+  <div class="panel">
+    <h3>Make it yours 💗</h3>
+    <p class="hint">Record your voice and edit the words, then tap <b>Download my page</b> to get one file with your voice baked in — share that file and they'll hear you.</p>
+
+    <label>🎙 Your voice message</label>
+    <div class="voicebox">
+      <div class="row">
+        <button class="btn" id="recBtn">● Record</button>
+        <button class="btn ghost" id="recClear" style="display:none;">Delete</button>
+        <span id="recState" class="voiceNote"></span>
+      </div>
+      <audio id="recPreview" controls style="display:none;"></audio>
+    </div>
+
+    <label>Their name</label>
+    <input type="text" id="f_crushName">
+    <label>Small line above their name</label>
+    <input type="text" id="f_kicker">
+    <label>Opening line</label>
+    <input type="text" id="f_opener">
+    <label>Sentence under the opening</label>
+    <input type="text" id="f_subline">
+    <label>Reasons (one per line)</label>
+    <textarea id="f_reasons"></textarea>
+    <label>Your letter</label>
+    <textarea id="f_letter" style="min-height:150px;"></textarea>
+    <label>Sign-off</label>
+    <input type="text" id="f_signoff">
+    <label>Final big line</label>
+    <input type="text" id="f_closer">
+    <label>Spotify song link (optional)</label>
+    <input type="text" id="f_songUrl" placeholder="https://open.spotify.com/track/...">
+    <label>Button link — how they reply (optional)</label>
+    <input type="text" id="f_replyLink" placeholder="sms:+1XXXXXXXXXX  or  mailto:you@email.com">
+
+    <div class="editActions">
+      <button class="btn ghost" id="previewBtn">👁 Preview</button>
+      <button class="btn" id="downloadBtn">⬇ Download my page</button>
+      <button class="btn ghost" id="closeEdit">Close</button>
+    </div>
+    <p class="hint" id="dlNote" style="margin-top:14px;"></p>
+  </div>
+</div>
+
 <script>
 "use strict";
 
 /* ============================================================
-   ✏️  YOUR STUFF — change everything in this block.
-   Keep the quotes. Add or remove reasons freely.
+   Default content. You can edit this by hand, OR just tap the
+   "✎ Personalize" button on the page — that's the easy way, and
+   it's the only way to record your voice.
    ============================================================ */
 const YOU = {
-  // Their name (shows big at the top):
   crushName: "you",
-
-  // Small line above their name:
   kicker: "there's something i want to say",
-
-  // The first thing they read, right after "Hey [name],":
   opener: "I made you a little something.",
-
-  // One warm sentence under the opening:
   subline: "It's easier to build this than to say it out loud, so — here goes.",
-
-  // The reasons. Write as many as you want, one per line.
-  // Make them SPECIFIC to them — real moments beat generic lines.
   reasons: [
     "The way you laugh at your own jokes before you finish them.",
     "You make ordinary days feel like they're worth remembering.",
     "I catch myself hoping you'll text, and you usually do.",
     "You're kind in the small ways most people don't notice."
   ],
-
-  // The letter. Write from the heart. Line breaks are kept.
   letter:
 `I'm not always great with words in the moment, so I wrote them down instead.
 
 I like who I am around you. I like the way time disappears when we talk. I don't know exactly where this goes, but I'd regret not telling you that you matter to me — a lot.
 
 No pressure, and no expectations. I just wanted you to know.`,
-
-  // How you sign off:
   signoff: "— me",
-
-  // OPTIONAL song. Paste a Spotify track link, or leave "" for none.
-  // (In Spotify: Share → Copy Song Link)
   songUrl: "",
   songWhy: "This one made me think of you.",
-
-  // The last big line + the button:
   closer: "So... coffee sometime?",
   replyText: "text me 💬",
-  // Where the button goes when tapped. Use "sms:YOURNUMBER"
-  // or "mailto:you@email.com" or any link. Leave "" to hide it.
-  replyLink: ""
+  replyLink: "",
+  voiceMessage: ""   // filled in when you record + download
 };
-/* ============================================================
-   ✏️  END OF YOUR STUFF — nothing below needs editing.
-   ============================================================ */
 
-// --- fill the page ---
+/* This line gets rewritten when you tap "Download my page" — it's how
+   your recording and edits travel with the file. Don't remove it. */
+let PERSONAL = null; //__PERSONAL__
+
+const DATA = Object.assign({}, YOU, PERSONAL || {});
+
+/* ---------- render ---------- */
 const $ = id => document.getElementById(id);
-$("kicker").textContent = YOU.kicker;
-$("crushName").textContent = YOU.crushName;
-$("opener").textContent = YOU.opener;
-$("subline").textContent = YOU.subline;
-$("letter").textContent = YOU.letter;
-$("signoff").textContent = YOU.signoff;
-$("closer").textContent = YOU.closer;
 
-const reasonsWrap = $("reasons");
-YOU.reasons.forEach((r, i) => {
-  const d = document.createElement("div");
-  d.className = "reason fade";
-  d.innerHTML = `<span class="num">${i + 1}.</span>${r}`;
-  reasonsWrap.appendChild(d);
-});
+function render(d) {
+  $("kicker").textContent = d.kicker;
+  $("crushName").textContent = d.crushName;
+  $("opener").textContent = d.opener;
+  $("subline").textContent = d.subline;
+  $("letter").textContent = d.letter;
+  $("signoff").textContent = d.signoff;
+  $("closer").textContent = d.closer;
 
-// optional song
-if (YOU.songUrl) {
-  const m = YOU.songUrl.match(/track\/([A-Za-z0-9]+)/);
+  const rw = $("reasons");
+  rw.innerHTML = "";
+  d.reasons.forEach((r, i) => {
+    const el = document.createElement("div");
+    el.className = "reason fade show";
+    el.innerHTML = `<span class="num">${i + 1}.</span>${r}`;
+    rw.appendChild(el);
+  });
+
+  // voice
+  if (d.voiceMessage) {
+    $("voicePlay").style.display = "";
+    const btn = $("voiceBtn");
+    let audio = null, playing = false;
+    btn.onclick = () => {
+      if (!audio) {
+        audio = new Audio(d.voiceMessage);
+        audio.onended = () => { playing = false; btn.textContent = "▶ play it again"; };
+      }
+      if (playing) { audio.pause(); playing = false; btn.textContent = "▶ press play — I recorded this for you"; }
+      else { audio.play(); playing = true; btn.textContent = "⏸ pause"; }
+    };
+  } else {
+    $("voicePlay").style.display = "none";
+  }
+
+  // song
+  const m = (d.songUrl || "").match(/track\/([A-Za-z0-9]+)/);
   if (m) {
     $("songWrap").style.display = "";
-    $("songWhy").textContent = YOU.songWhy;
+    $("songWhy").textContent = d.songWhy || "";
     $("songEmbed").innerHTML =
       `<iframe style="border-radius:14px" src="https://open.spotify.com/embed/track/${m[1]}" width="300" height="80" frameborder="0" allow="encrypted-media"></iframe>`;
+  } else {
+    $("songWrap").style.display = "none";
   }
-}
 
-// optional reply button
-if (YOU.replyLink) {
+  // reply button
   const b = $("replyBtn");
-  b.textContent = YOU.replyText;
-  b.onclick = () => location.href = YOU.replyLink;
-} else {
-  $("replyBtn").style.display = "none";
+  if (d.replyLink) { b.style.display = ""; b.textContent = d.replyText || "reply"; b.onclick = () => location.href = d.replyLink; }
+  else b.style.display = "none";
 }
 
-// --- reveal on scroll ---
-const io = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("show"); });
-}, { threshold: 0.2 });
+render(DATA);
+
+/* ---------- scroll reveal + hearts ---------- */
+const io = new IntersectionObserver(es => {
+  es.forEach(e => { if (e.isIntersecting) e.target.classList.add("show"); });
+}, { threshold: 0.15 });
 document.querySelectorAll(".fade").forEach(el => io.observe(el));
 
-// --- floating hearts ---
 const hearts = $("hearts");
 const glyphs = ["💗", "💕", "💖", "🩷", "✨"];
 for (let i = 0; i < 22; i++) {
@@ -266,6 +320,119 @@ for (let i = 0; i < 22; i++) {
   s.style.fontSize = (14 + Math.random() * 18) + "px";
   hearts.appendChild(s);
 }
+
+/* ============================================================
+   PERSONALIZE EDITOR
+   ============================================================ */
+const editState = { voiceMessage: DATA.voiceMessage || "" };
+
+function fillForm(d) {
+  $("f_crushName").value = d.crushName;
+  $("f_kicker").value = d.kicker;
+  $("f_opener").value = d.opener;
+  $("f_subline").value = d.subline;
+  $("f_reasons").value = d.reasons.join("\n");
+  $("f_letter").value = d.letter;
+  $("f_signoff").value = d.signoff;
+  $("f_closer").value = d.closer;
+  $("f_songUrl").value = d.songUrl || "";
+  $("f_replyLink").value = d.replyLink || "";
+  updateVoiceUI();
+}
+
+function collect() {
+  return Object.assign({}, DATA, {
+    crushName: $("f_crushName").value,
+    kicker: $("f_kicker").value,
+    opener: $("f_opener").value,
+    subline: $("f_subline").value,
+    reasons: $("f_reasons").value.split("\n").map(s => s.trim()).filter(Boolean),
+    letter: $("f_letter").value,
+    signoff: $("f_signoff").value,
+    closer: $("f_closer").value,
+    songUrl: $("f_songUrl").value.trim(),
+    replyLink: $("f_replyLink").value.trim(),
+    voiceMessage: editState.voiceMessage
+  });
+}
+
+$("editToggle").onclick = () => { fillForm(DATA); $("editor").style.display = "block"; };
+$("closeEdit").onclick = () => { $("editor").style.display = "none"; };
+$("previewBtn").onclick = () => {
+  Object.assign(DATA, collect());
+  render(DATA);
+  $("editor").style.display = "none";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+/* ---- voice recording ---- */
+let mediaRec = null, chunks = [], recStream = null, recording = false;
+
+function updateVoiceUI() {
+  const has = !!editState.voiceMessage;
+  $("recClear").style.display = has ? "" : "none";
+  const prev = $("recPreview");
+  if (has) { prev.src = editState.voiceMessage; prev.style.display = ""; }
+  else { prev.style.display = "none"; prev.removeAttribute("src"); }
+  $("recState").textContent = recording ? "recording… tap ■ to stop"
+    : has ? "got it — press play to hear yourself ✔" : "tap Record and say something sweet";
+  $("recBtn").textContent = recording ? "■ Stop" : (has ? "● Re-record" : "● Record");
+}
+
+$("recBtn").onclick = async () => {
+  if (recording) {
+    recording = false;
+    try { mediaRec.stop(); } catch {}
+    return;
+  }
+  try {
+    recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch {
+    alert("I need microphone permission to record — check your browser settings.");
+    return;
+  }
+  chunks = [];
+  mediaRec = new MediaRecorder(recStream);
+  mediaRec.ondataavailable = e => chunks.push(e.data);
+  mediaRec.onstop = () => {
+    const blob = new Blob(chunks, { type: mediaRec.mimeType || "audio/webm" });
+    const fr = new FileReader();
+    fr.onload = () => { editState.voiceMessage = fr.result; updateVoiceUI(); };
+    fr.readAsDataURL(blob);
+    recStream.getTracks().forEach(t => t.stop());
+  };
+  recording = true;
+  mediaRec.start();
+  updateVoiceUI();
+};
+
+$("recClear").onclick = () => { editState.voiceMessage = ""; updateVoiceUI(); };
+
+/* ---- download a personalized copy with everything baked in ---- */
+$("downloadBtn").onclick = async () => {
+  const note = $("dlNote");
+  note.textContent = "Building your page…";
+  let html;
+  try {
+    const res = await fetch(location.href, { cache: "no-cache" });
+    html = await res.text();
+  } catch {
+    note.textContent = "Couldn't read the page source. Open this via its web link (not a downloaded file), then try again.";
+    return;
+  }
+  const json = JSON.stringify(collect());
+  const marker = /let PERSONAL = .*?; \/\/__PERSONAL__/;
+  if (!marker.test(html)) { note.textContent = "Couldn't find the personalize marker in the file."; return; }
+  html = html.replace(marker, () => `let PERSONAL = ${json}; //__PERSONAL__`);
+
+  const blob = new Blob([html], { type: "text/html" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "for-you.html";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  note.textContent = "Done! Saved as for-you.html — that file has your voice inside it. Send it to them, or upload it to your GitHub to get a link.";
+};
 </script>
 </body>
 </html>
