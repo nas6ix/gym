@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>hey, this is for you</title>
+<style>
+  /* ============================================================
+     ✏️  EDIT ONLY THE PART LABELED "YOUR STUFF" IN THE SCRIPT
+         AT THE BOTTOM. YOU DON'T NEED TO TOUCH ANYTHING ELSE.
+     ============================================================ */
+  :root {
+    --bg1: #1a0b2e;
+    --bg2: #2d1b4e;
+    --accent: #ff7eb6;
+    --accent2: #ffd6e8;
+    --text: #fdeff6;
+    --muted: #c9a9d1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "Georgia", "Times New Roman", serif;
+    color: var(--text);
+    background: linear-gradient(160deg, var(--bg1), var(--bg2));
+    background-attachment: fixed;
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+  .hearts { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .hearts span {
+    position: absolute;
+    bottom: -40px;
+    font-size: 20px;
+    opacity: 0;
+    animation: rise linear infinite;
+  }
+  @keyframes rise {
+    0%   { transform: translateY(0) scale(.6) rotate(0deg); opacity: 0; }
+    10%  { opacity: .9; }
+    100% { transform: translateY(-110vh) scale(1.1) rotate(40deg); opacity: 0; }
+  }
+  section {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 24px;
+  }
+  .fade { opacity: 0; transform: translateY(28px); transition: opacity 1s ease, transform 1s ease; }
+  .fade.show { opacity: 1; transform: none; }
+  .kicker { color: var(--accent); letter-spacing: 3px; text-transform: uppercase; font-size: 13px; font-family: -apple-system, sans-serif; margin-bottom: 18px; }
+  h1 { font-size: clamp(38px, 9vw, 76px); font-weight: 400; line-height: 1.1; }
+  h1 .name { color: var(--accent); font-style: italic; }
+  .sub { color: var(--muted); font-size: 18px; margin-top: 20px; max-width: 30ch; }
+  .scrollcue { margin-top: 46px; color: var(--muted); font-size: 13px; animation: bob 1.8s ease-in-out infinite; font-family: -apple-system, sans-serif; }
+  @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
+
+  h2 { font-size: clamp(26px, 6vw, 40px); font-weight: 400; margin-bottom: 30px; }
+  h2 em { color: var(--accent); font-style: italic; }
+
+  .reason {
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,126,182,.3);
+    border-radius: 18px;
+    padding: 20px 24px;
+    margin: 12px auto;
+    max-width: 460px;
+    font-size: 19px;
+    backdrop-filter: blur(4px);
+  }
+  .reason .num { color: var(--accent); font-style: italic; margin-right: 8px; }
+
+  .letter {
+    background: rgba(255,255,255,.06);
+    border-radius: 20px;
+    padding: 34px 30px;
+    max-width: 520px;
+    font-size: 19px;
+    text-align: left;
+    white-space: pre-line;
+    box-shadow: 0 20px 60px rgba(0,0,0,.35);
+  }
+  .signoff { margin-top: 24px; font-style: italic; color: var(--accent2); font-size: 22px; text-align: right; }
+
+  .song { margin-top: 26px; }
+  .song iframe { border-radius: 14px; max-width: 100%; }
+  .song .why { color: var(--muted); font-size: 15px; margin-bottom: 14px; font-style: italic; }
+
+  .final h1 { margin-bottom: 20px; }
+  .btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 14px 30px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #2d1b4e;
+    text-decoration: none;
+    font-family: -apple-system, sans-serif;
+    font-weight: 600;
+    font-size: 17px;
+    border: none;
+    cursor: pointer;
+    transition: transform .15s ease;
+  }
+  .btn:hover { transform: scale(1.05); }
+  .tiny { color: var(--muted); font-size: 13px; margin-top: 30px; font-family: -apple-system, sans-serif; }
+</style>
+</head>
+<body>
+
+<div class="hearts" id="hearts"></div>
+
+<!-- 1 · opening -->
+<section>
+  <div class="fade">
+    <div class="kicker" id="kicker"></div>
+    <h1>Hey <span class="name" id="crushName"></span>,<br id="br1"><span id="opener"></span></h1>
+    <p class="sub" id="subline"></p>
+    <div class="scrollcue">scroll down ↓</div>
+  </div>
+</section>
+
+<!-- 2 · reasons -->
+<section id="reasonsSection">
+  <h2 class="fade">A few <em>true</em> things</h2>
+  <div id="reasons"></div>
+</section>
+
+<!-- 3 · the letter -->
+<section>
+  <div class="fade">
+    <div class="letter">
+      <span id="letter"></span>
+      <div class="signoff" id="signoff"></div>
+    </div>
+    <div class="song" id="songWrap" style="display:none;">
+      <p class="why" id="songWhy"></p>
+      <div id="songEmbed"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 · ending -->
+<section class="final">
+  <div class="fade">
+    <h1 id="closer"></h1>
+    <button class="btn" id="replyBtn"></button>
+    <p class="tiny">made by hand · just for you</p>
+  </div>
+</section>
+
+<script>
+"use strict";
+
+/* ============================================================
+   ✏️  YOUR STUFF — change everything in this block.
+   Keep the quotes. Add or remove reasons freely.
+   ============================================================ */
+const YOU = {
+  // Their name (shows big at the top):
+  crushName: "you",
+
+  // Small line above their name:
+  kicker: "there's something i want to say",
+
+  // The first thing they read, right after "Hey [name],":
+  opener: "I made you a little something.",
+
+  // One warm sentence under the opening:
+  subline: "It's easier to build this than to say it out loud, so — here goes.",
+
+  // The reasons. Write as many as you want, one per line.
+  // Make them SPECIFIC to them — real moments beat generic lines.
+  reasons: [
+    "The way you laugh at your own jokes before you finish them.",
+    "You make ordinary days feel like they're worth remembering.",
+    "I catch myself hoping you'll text, and you usually do.",
+    "You're kind in the small ways most people don't notice."
+  ],
+
+  // The letter. Write from the heart. Line breaks are kept.
+  letter:
+`I'm not always great with words in the moment, so I wrote them down instead.
+
+I like who I am around you. I like the way time disappears when we talk. I don't know exactly where this goes, but I'd regret not telling you that you matter to me — a lot.
+
+No pressure, and no expectations. I just wanted you to know.`,
+
+  // How you sign off:
+  signoff: "— me",
+
+  // OPTIONAL song. Paste a Spotify track link, or leave "" for none.
+  // (In Spotify: Share → Copy Song Link)
+  songUrl: "",
+  songWhy: "This one made me think of you.",
+
+  // The last big line + the button:
+  closer: "So... coffee sometime?",
+  replyText: "text me 💬",
+  // Where the button goes when tapped. Use "sms:YOURNUMBER"
+  // or "mailto:you@email.com" or any link. Leave "" to hide it.
+  replyLink: ""
+};
+/* ============================================================
+   ✏️  END OF YOUR STUFF — nothing below needs editing.
+   ============================================================ */
+
+// --- fill the page ---
+const $ = id => document.getElementById(id);
+$("kicker").textContent = YOU.kicker;
+$("crushName").textContent = YOU.crushName;
+$("opener").textContent = YOU.opener;
+$("subline").textContent = YOU.subline;
+$("letter").textContent = YOU.letter;
+$("signoff").textContent = YOU.signoff;
+$("closer").textContent = YOU.closer;
+
+const reasonsWrap = $("reasons");
+YOU.reasons.forEach((r, i) => {
+  const d = document.createElement("div");
+  d.className = "reason fade";
+  d.innerHTML = `<span class="num">${i + 1}.</span>${r}`;
+  reasonsWrap.appendChild(d);
+});
+
+// optional song
+if (YOU.songUrl) {
+  const m = YOU.songUrl.match(/track\/([A-Za-z0-9]+)/);
+  if (m) {
+    $("songWrap").style.display = "";
+    $("songWhy").textContent = YOU.songWhy;
+    $("songEmbed").innerHTML =
+      `<iframe style="border-radius:14px" src="https://open.spotify.com/embed/track/${m[1]}" width="300" height="80" frameborder="0" allow="encrypted-media"></iframe>`;
+  }
+}
+
+// optional reply button
+if (YOU.replyLink) {
+  const b = $("replyBtn");
+  b.textContent = YOU.replyText;
+  b.onclick = () => location.href = YOU.replyLink;
+} else {
+  $("replyBtn").style.display = "none";
+}
+
+// --- reveal on scroll ---
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("show"); });
+}, { threshold: 0.2 });
+document.querySelectorAll(".fade").forEach(el => io.observe(el));
+
+// --- floating hearts ---
+const hearts = $("hearts");
+const glyphs = ["💗", "💕", "💖", "🩷", "✨"];
+for (let i = 0; i < 22; i++) {
+  const s = document.createElement("span");
+  s.textContent = glyphs[i % glyphs.length];
+  s.style.left = Math.random() * 100 + "vw";
+  s.style.animationDuration = (7 + Math.random() * 8) + "s";
+  s.style.animationDelay = (Math.random() * 8) + "s";
+  s.style.fontSize = (14 + Math.random() * 18) + "px";
+  hearts.appendChild(s);
+}
+</script>
+</body>
+</html>
