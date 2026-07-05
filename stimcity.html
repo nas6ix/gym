@@ -104,6 +104,27 @@ const Sound = {
     o.type = "sine"; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.5, t + 0.3);
     g.gain.setValueAtTime(0.25, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
     o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + 0.36);
+  },
+  /* short filtered noise burst — the building block for pops & crunches */
+  noise(dur, freq, q, vol) {
+    if (!this.on) return;
+    this.ensure();
+    const t = this.ctx.currentTime;
+    const len = Math.max(1, Math.floor(this.ctx.sampleRate * dur));
+    const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 1.5);
+    const s = this.ctx.createBufferSource(); s.buffer = buf;
+    const f = this.ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = freq; f.Q.value = q || 1;
+    const g = this.ctx.createGain(); g.gain.value = vol || 0.3;
+    s.connect(f); f.connect(g); g.connect(this.ctx.destination); s.start(t);
+  },
+  /* microwave popcorn: a snappy burst with a little tonal pop */
+  popcorn() { this.noise(0.045, rand(900, 1700), 1.5, 0.5); this.blip(rand(500, 1000), 0.05, "triangle", 0.12); },
+  /* fried chicken crunch: a few overlapping crispy grains */
+  crunch() {
+    const n = 3 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < n; i++) setTimeout(() => this.noise(0.03, rand(1600, 4200), 3, 0.28), i * rand(8, 34));
   }
 };
 
@@ -139,46 +160,150 @@ function hsl(h, s, l, a = 1) { return `hsla(${h},${s}%,${l}%,${a})`; }
 =================================================================== */
 const TOYS = {
 
-  /* ---- bubble wrap ---- */
-  bubbles: {
-    name: "Bubble Wrap", emoji: "🫧", hint: "pop them all — drag to pop lots",
-    color: "linear-gradient(135deg,#7afcff,#4a6cf7)",
+  /* ---- microwave popcorn ---- */
+  popcorn: {
+    name: "Popcorn", emoji: "🍿", hint: "tap kernels — or just watch them pop",
+    color: "linear-gradient(135deg,#fed976,#f9a825)",
+    mk() {
+      return { x: rand(24, W - 24), y: rand(80, H - 30), popped: false, t: 0,
+        jump: 0, vy: 0, ang: rand(0, 7), hue: rand(34, 46), sz: rand(9, 14), puffs: [] };
+    },
     init() {
-      this.cells = [];
-      const size = Math.max(46, Math.min(W, H) / 9);
-      const cols = Math.floor(W / size), rows = Math.floor(H / size);
-      const ox = (W - cols * size) / 2, oy = (H - rows * size) / 2;
-      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++)
-        this.cells.push({ x: ox + c * size + size / 2, y: oy + r * size + size / 2, r: size * 0.42, popped: false, hue: rand(180, 260), t: 0 });
-      this.size = size;
+      this.kernels = [];
+      const n = Math.max(26, Math.floor((W * H) / 11000));
+      for (let i = 0; i < n; i++) this.kernels.push(this.mk());
+      this.doneAt = null; this.frame = 0;
+    },
+    popKernel(k) {
+      if (k.popped) return;
+      k.popped = true; k.t = 1; k.vy = -rand(3.5, 6.5);
+      const c = 3 + Math.floor(Math.random() * 3);
+      for (let j = 0; j < c; j++)
+        k.puffs.push({ dx: rand(-1, 1) * k.sz, dy: rand(-1, 1) * k.sz, r: rand(k.sz * 0.75, k.sz * 1.3) });
+      Sound.popcorn();
+      if (navigator.vibrate) navigator.vibrate(9);
     },
     popAt(p) {
-      for (const b of this.cells) {
-        if (!b.popped && Math.hypot(p.x - b.x, p.y - b.y) < b.r) {
-          b.popped = true; b.t = 1; Sound.pop();
-          if (navigator.vibrate) navigator.vibrate(12);
-          if (this.cells.every(x => x.popped)) setTimeout(() => this.init(), 500);
-        }
-      }
+      for (const k of this.kernels)
+        if (!k.popped && Math.hypot(p.x - k.x, p.y - k.y) < k.sz + 12) this.popKernel(k);
     },
     down(p) { this.popAt(p); },
     move(p, id, down) { if (down) this.popAt(p); },
     draw() {
       ctx.clearRect(0, 0, W, H);
-      for (const b of this.cells) {
-        if (b.popped) {
-          if (b.t > 0) b.t -= 0.06;
-          ctx.beginPath(); ctx.arc(b.x, b.y, b.r * (1 - b.t * 0.5), 0, 7);
-          ctx.fillStyle = hsl(b.hue, 40, 22, 0.5); ctx.fill();
+      this.frame++;
+      // microwave effect: kernels pop on their own, fastest in the middle
+      const un = this.kernels.filter(k => !k.popped);
+      const rate = this.frame < 90 ? 0.03 : this.frame < 260 ? 0.09 : 0.03;
+      if (un.length && Math.random() < rate) this.popKernel(un[(Math.random() * un.length) | 0]);
+      if (!un.length) { if (this.doneAt == null) this.doneAt = this.frame; else if (this.frame - this.doneAt > 130) this.init(); }
+
+      for (const k of this.kernels) {
+        if (k.popped) {
+          k.vy += 0.4; k.jump += k.vy; if (k.jump > 0) { k.jump = 0; k.vy *= -0.42; }
+          if (k.t > 0) k.t -= 0.05;
+          const s = 1 + k.t * 0.35;
+          ctx.save(); ctx.translate(k.x, k.y + k.jump);
+          for (const pf of k.puffs) {
+            const g = ctx.createRadialGradient(pf.dx * s - 3, pf.dy * s - 3, 1, pf.dx * s, pf.dy * s, pf.r * s);
+            g.addColorStop(0, "#fffdf3"); g.addColorStop(1, "#ffe7a0");
+            ctx.beginPath(); ctx.arc(pf.dx * s, pf.dy * s, pf.r * s, 0, 7); ctx.fillStyle = g; ctx.fill();
+          }
+          ctx.restore();
         } else {
-          const g = ctx.createRadialGradient(b.x - b.r * 0.3, b.y - b.r * 0.3, b.r * 0.1, b.x, b.y, b.r);
-          g.addColorStop(0, hsl(b.hue, 90, 85, 0.95));
-          g.addColorStop(1, hsl(b.hue, 80, 55, 0.85));
-          ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 7); ctx.fillStyle = g; ctx.fill();
-          ctx.beginPath(); ctx.arc(b.x - b.r * 0.32, b.y - b.r * 0.32, b.r * 0.18, 0, 7);
-          ctx.fillStyle = "rgba(255,255,255,.7)"; ctx.fill();
+          ctx.save(); ctx.translate(k.x, k.y); ctx.rotate(k.ang);
+          const g = ctx.createLinearGradient(0, -k.sz, 0, k.sz);
+          g.addColorStop(0, hsl(k.hue, 80, 55)); g.addColorStop(1, hsl(k.hue - 12, 80, 32));
+          ctx.beginPath(); ctx.ellipse(0, 0, k.sz * 0.6, k.sz * 0.82, 0, 0, 7); ctx.fillStyle = g; ctx.fill();
+          ctx.restore();
         }
       }
+    }
+  },
+
+  /* ---- fried chicken ---- */
+  chicken: {
+    name: "Fried Chicken", emoji: "🍗", hint: "tap & rub the crispy skin",
+    color: "linear-gradient(135deg,#e0a355,#a5641e)",
+    init() {
+      this.cx = W / 2; this.cy = H / 2 + 10;
+      this.scale = Math.min(W, H) / 480;
+      this.crumbs = []; this.bites = []; this.press = 0; this.lastCrunch = 0;
+      // pre-baked craggy crust texture so it doesn't flicker
+      this.bumps = [];
+      for (let i = 0; i < 190; i++) {
+        const a = rand(0, 7), rr = Math.sqrt(Math.random());
+        this.bumps.push({ x: Math.cos(a) * rr * 92, y: 24 + Math.sin(a) * rr * 116, r: rand(5, 13), shade: rand(-1, 1) });
+      }
+    },
+    hitBody(p) {
+      const dx = (p.x - this.cx) / this.scale, dy = (p.y - this.cy - 24) / this.scale;
+      return (dx * dx) / (100 * 100) + (dy * dy) / (125 * 125) < 1.1;
+    },
+    crunchAt(p) {
+      if (!this.hitBody(p)) return;
+      const now = performance.now();
+      if (now - this.lastCrunch < 60) return;
+      this.lastCrunch = now;
+      Sound.crunch();
+      if (navigator.vibrate) navigator.vibrate(6);
+      this.press = 1;
+      for (let i = 0; i < rand(3, 8); i++)
+        this.crumbs.push({ x: p.x, y: p.y, vx: rand(-3.5, 3.5), vy: rand(-5, -1), r: rand(2, 5), hue: rand(28, 40), life: 1 });
+      if (Math.random() < 0.28) this.bites.push({ x: (p.x - this.cx) / this.scale, y: (p.y - this.cy) / this.scale, r: rand(11, 20) });
+    },
+    down(p) { this.crunchAt(p); },
+    move(p, id, down) { if (down) this.crunchAt(p); },
+    draw() {
+      ctx.fillStyle = "#0a0a12"; ctx.fillRect(0, 0, W, H);
+      if (this.press > 0) this.press -= 0.08;
+      const s = this.scale * (1 - Math.max(0, this.press) * 0.04);
+
+      // soft plate shadow
+      ctx.save(); ctx.translate(this.cx, this.cy + 130 * this.scale);
+      ctx.scale(1, 0.28); ctx.beginPath(); ctx.arc(0, 0, 120 * this.scale, 0, 7);
+      ctx.fillStyle = "rgba(0,0,0,.4)"; ctx.fill(); ctx.restore();
+
+      ctx.save(); ctx.translate(this.cx, this.cy); ctx.scale(s, s);
+
+      // bone
+      ctx.strokeStyle = "#f3ecd9"; ctx.lineWidth = 24; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(0, -150); ctx.lineTo(0, -78); ctx.stroke();
+      ctx.fillStyle = "#f3ecd9";
+      ctx.beginPath(); ctx.arc(-15, -156, 15, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(15, -156, 15, 0, 7); ctx.fill();
+
+      // crust base
+      const g = ctx.createRadialGradient(-30, -10, 20, 0, 24, 150);
+      g.addColorStop(0, hsl(36, 75, 52)); g.addColorStop(1, hsl(26, 78, 30));
+      ctx.beginPath(); ctx.ellipse(0, 24, 100, 125, 0, 0, 7); ctx.fillStyle = g; ctx.fill();
+
+      // craggy fried texture
+      for (const b of this.bumps) {
+        ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 7);
+        ctx.fillStyle = hsl(32, 70, 42 + b.shade * 15); ctx.fill();
+      }
+      // crispy highlights
+      for (const b of this.bumps) if (b.shade > 0.55) {
+        ctx.beginPath(); ctx.arc(b.x - b.r * 0.3, b.y - b.r * 0.3, b.r * 0.4, 0, 7);
+        ctx.fillStyle = "rgba(255,240,200,.5)"; ctx.fill();
+      }
+      // bite marks reveal the meat
+      for (const bt of this.bites) {
+        ctx.beginPath(); ctx.arc(bt.x, bt.y, bt.r, 0, 7);
+        ctx.fillStyle = "#f2e6cc"; ctx.fill();
+        ctx.beginPath(); ctx.arc(bt.x, bt.y, bt.r * 0.7, 0, 7);
+        ctx.fillStyle = "#e8d3ad"; ctx.fill();
+      }
+      ctx.restore();
+
+      // flying crumbs (screen space)
+      for (const c of this.crumbs) {
+        c.vy += 0.25; c.x += c.vx; c.y += c.vy; c.life -= 0.02;
+        ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, 7);
+        ctx.fillStyle = hsl(c.hue, 75, 45, Math.max(0, c.life)); ctx.fill();
+      }
+      this.crumbs = this.crumbs.filter(c => c.life > 0 && c.y < H + 20);
     }
   },
 
