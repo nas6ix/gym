@@ -217,7 +217,42 @@ const VOCAB = [
   ["vast", ["small","enormous","loud","rigid","eager"], 1],
   ["quell", ["stir up","suppress","gather","polish","predict"], 1],
   ["deft", ["clumsy","skillful","gloomy","hollow","brief"], 1],
-  ["baffle", ["clarify","confuse","gather","soften","delay"], 1]
+  ["baffle", ["clarify","confuse","gather","soften","delay"], 1],
+  ["amend", ["worsen","revise","gather","polish","delay"], 1],
+  ["compel", ["allow","force","gather","soften","delay"], 1],
+  ["detest", ["adore","hate","gather","polish","predict"], 1],
+  ["elude", ["confront","escape","gather","soften","delay"], 1],
+  ["fatigue", ["energy","exhaustion","noise","haste","gloom"], 1],
+  ["gaudy", ["plain","flashy","calm","brief","loyal"], 1],
+  ["hamper", ["help","hinder","gather","polish","delay"], 1],
+  ["idle", ["busy","inactive","loud","rigid","eager"], 1],
+  ["jargon", ["plain speech","specialized terms","noise","haste","gloom"], 1],
+  ["kindle", ["extinguish","ignite","gather","soften","delay"], 1],
+  ["latent", ["obvious","hidden","loud","rigid","eager"], 1],
+  ["mundane", ["exciting","ordinary","gloomy","hollow","rapid"], 1],
+  ["notorious", ["unknown","infamous","gentle","plain","rapid"], 1],
+  ["obsolete", ["current","outdated","calm","brief","loyal"], 1],
+  ["ponder", ["ignore","consider","gather","polish","delay"], 1],
+  ["quench", ["ignite","satisfy","gather","soften","predict"], 1],
+  ["resilient", ["fragile","able to recover","loud","rigid","eager"], 1],
+  ["scrutinize", ["glance","examine closely","gather","polish","delay"], 1],
+  ["tranquil", ["chaotic","peaceful","gloomy","hollow","rapid"], 1],
+  ["uphold", ["abandon","support","gather","soften","delay"], 1],
+  ["vigor", ["weakness","energy","noise","haste","gloom"], 1],
+  ["wither", ["bloom","shrivel","gather","polish","predict"], 1],
+  ["yearn", ["dread","long for","gather","soften","delay"], 1],
+  ["zeal", ["indifference","passion","noise","haste","gloom"], 1],
+  ["adhere", ["separate","stick fast","gather","polish","delay"], 1],
+  ["bland", ["spicy","dull in flavor","loud","rigid","eager"], 1],
+  ["comply", ["resist","obey","gather","soften","predict"], 1],
+  ["diminish", ["increase","reduce","gather","polish","delay"], 1],
+  ["exempt", ["obligated","excused","loud","rigid","eager"], 1],
+  ["feign", ["reveal","pretend","gather","soften","delay"], 1],
+  ["haughty", ["humble","arrogant","gloomy","hollow","rapid"], 1],
+  ["inept", ["skilled","incompetent","loud","rigid","eager"], 1],
+  ["jeopardy", ["safety","danger","noise","haste","gloom"], 1],
+  ["lavish", ["stingy","extravagant","calm","brief","loyal"], 1],
+  ["mock", ["respect","ridicule","gather","soften","delay"], 1]
 ];
 
 const PASSAGES = [
@@ -319,6 +354,46 @@ Keeping the light burning demanded lonely, exacting work. Keepers lived for mont
         ["wealthy","reliable and dedicated","fast runners","trained sailors"], 1],
       ["In this passage, 'vigilance' most nearly means",
         ["carelessness","watchfulness","loneliness","brightness"], 1]
+    ]
+  },
+  {
+    title: "How Vaccines Work",
+    text: `The immune system is remarkably good at fighting invaders it has met before. The first time a dangerous germ enters the body, the immune system has to learn its shape from scratch, and that delay can let a serious illness take hold. But once the threat is defeated, the body keeps a memory of it. If the same germ returns, the defense is faster and stronger, often stopping the disease before symptoms even appear.
+
+A vaccine takes advantage of this memory without making a person sick. Instead of the live, dangerous germ, a vaccine introduces something harmless that carries the same recognizable markers — a weakened version, a dead fragment, or simply a set of instructions the body can use to build one of those markers itself. The immune system studies this safe preview and files away the memory, so a real infection later meets a defense that is already prepared.
+
+Vaccines also protect people who cannot be vaccinated, such as newborns or those with certain illnesses. When enough of a community is immune, a germ struggles to find new hosts and can no longer spread easily. This indirect shield, sometimes called herd immunity, means that each person's vaccination helps guard neighbors as well as themselves.`,
+    questions: [
+      ["The main idea of the passage is that vaccines",
+        ["cure diseases after they start","train the immune system safely before a real infection","replace the immune system","only protect the person vaccinated"], 1],
+      ["Why is the first encounter with a germ often dangerous?",
+        ["the germ is always deadly","the immune system needs time to learn its shape","vaccines make it worse","the body has no immune system yet"], 1],
+      ["A vaccine is described as introducing something that is",
+        ["a live, dangerous germ","harmless but carries recognizable markers","a cure","a painkiller"], 1],
+      ["Herd immunity protects people who cannot be vaccinated by",
+        ["giving them the germ","making it hard for the germ to find new hosts","curing them directly","weakening their immune systems"], 1],
+      ["In this passage, 'preview' most nearly means",
+        ["a full infection","an advance look","a side effect","a cure"], 1]
+    ]
+  },
+  {
+    title: "The Erie Canal",
+    text: `In the early 1800s, moving goods across the young United States was slow and costly. The Appalachian Mountains stood like a wall between the busy Atlantic coast and the rich farmland of the interior. Hauling a load of wheat overland from the Great Lakes to New York City could cost more than the wheat itself was worth. Many doubted the barrier could ever be crossed cheaply.
+
+The bold answer was a canal — an artificial river, 363 miles long, cut across New York State to link Lake Erie with the Hudson River. Critics mocked the project as an impossible ditch, and it demanded years of grueling labor with hand tools and animal power. When it opened in 1825, however, the effect was immediate. The cost of shipping a ton of goods across the state fell by roughly ninety percent, and travel time dropped from weeks to days.
+
+The consequences reached far beyond trade. New York City, with its new water highway to the interior, grew into the nation's leading port. Towns sprang up along the canal's path, and settlers poured westward using the route in reverse. A single waterway had quietly redrawn the map of American commerce.`,
+    questions: [
+      ["The passage is mainly about",
+        ["the history of New York City","how the Erie Canal transformed trade and settlement","farming in the Great Lakes","building with hand tools"], 1],
+      ["Before the canal, shipping wheat overland was",
+        ["fast and cheap","so expensive it could cost more than the wheat","impossible in winter only","done by railroad"], 1],
+      ["When the canal opened, shipping costs across the state",
+        ["rose sharply","fell by about ninety percent","stayed the same","doubled"], 1],
+      ["It can be inferred that the canal helped New York City because it",
+        ["reduced its population","connected it cheaply to the interior","ended all overland travel","replaced the Hudson River"], 1],
+      ["The critics' phrase 'impossible ditch' shows that they",
+        ["strongly supported the canal","doubted it could succeed","had already built one","wanted a railroad instead"], 1]
     ]
   }
 ];
