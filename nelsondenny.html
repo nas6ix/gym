@@ -78,7 +78,10 @@
       <span><b>Vocabulary</b><small>Pick the closest meaning · timed synonyms</small></span><span class="go">›</span>
     </button>
     <button class="modeBtn" data-mode="comp">
-      <span><b>Reading Comprehension</b><small>Passages · main idea, detail & inference</small></span><span class="go">›</span>
+      <span><b>Reading Comprehension</b><small>Two passages · main idea, detail & inference</small></span><span class="go">›</span>
+    </button>
+    <button class="modeBtn" data-mode="fullread" style="border-color:var(--accent);background:linear-gradient(135deg,rgba(77,141,255,.14),var(--panel2))">
+      <span><b>📖 Full Reading Test</b><small>~38 questions · 20-minute timer · full section</small></span><span class="go">›</span>
     </button>
     <button class="modeBtn" data-mode="rate">
       <span><b>Reading Rate</b><small>Measure your words-per-minute & grade level</small></span><span class="go">›</span>
@@ -494,6 +497,58 @@ That last point reveals something essential. Money has value only because a comm
       ["The author's tone throughout the passage is best described as",
         ["explanatory","angry","sorrowful","sarcastic"], 0]
     ]
+  },
+  {
+    title: "The Circulatory System",
+    text: `The human body contains roughly sixty thousand miles of blood vessels, a network long enough to circle the Earth more than twice. Through this vast plumbing, the heart pushes blood on an endless loop, delivering oxygen and nutrients to every living cell and carrying away the waste those cells produce. A cell more than a fraction of a millimeter from a vessel would starve; the circulatory system is what allows a body of trillions of cells to function as one.
+
+At the center of the system sits the heart, a muscular pump no larger than a fist. It is really two pumps working side by side. The right side receives blood returning from the body, dark and depleted of oxygen, and sends it to the lungs. There the blood releases carbon dioxide and takes on a fresh supply of oxygen before returning to the left side, which drives it back out to the body with enough force to reach the fingertips and toes. This double circuit repeats about once every minute, day and night, for a lifetime.
+
+The vessels themselves are not identical. Arteries, which carry blood away from the heart under high pressure, have thick, elastic walls that stretch and recoil with each beat. Veins, returning blood at lower pressure, are thinner and rely partly on the squeeze of surrounding muscles, aided by small valves that keep blood from flowing backward. Between them lie the capillaries, vessels so narrow that blood cells pass through in single file, and so thin-walled that oxygen and nutrients can slip directly across into the tissues.
+
+For all its complexity, the system is easily taken for granted. It works silently until something goes wrong — a blocked artery, a weakened valve — and only then do we notice the quiet labor that had been sustaining us all along.`,
+    questions: [
+      ["The main idea of the passage is that the circulatory system",
+        ["is too complex to understand","continuously supplies cells and removes waste","is located only in the heart","rarely fails"], 1],
+      ["The comparison to circling the Earth is used to convey the vessels'",
+        ["great total length","bright red color","high pressure","thickness"], 0],
+      ["According to the passage, the right side of the heart sends blood to the",
+        ["fingertips","lungs","brain","stomach"], 1],
+      ["Arteries differ from veins in that arteries",
+        ["carry blood at higher pressure with thicker walls","have valves and thin walls","return blood to the heart","are narrower than capillaries"], 0],
+      ["Capillaries are described as ideal for exchange because they are",
+        ["very long","extremely thin-walled and narrow","under high pressure","surrounded by muscle"], 1],
+      ["It can be inferred from the last paragraph that the author finds the system",
+        ["overrated","quietly remarkable","poorly designed","dangerous"], 1],
+      ["In this passage, 'depleted' most nearly means",
+        ["enriched","emptied","thickened","warmed"], 1]
+    ]
+  },
+  {
+    title: "Public Libraries",
+    text: `For most of recorded history, reading was a privilege of the wealthy. Books were scarce and expensive, and the great collections of the past — from ancient Alexandria to the libraries of medieval monasteries — were closed to ordinary people. To read widely, one generally had to be born into money or the church. Knowledge, like land, tended to stay in the hands of those who already had it.
+
+The idea that a community should provide books to anyone, free of charge, is surprisingly modern. It gathered force in the nineteenth century, as industrial cities swelled with workers and reformers argued that a self-governing people needed to be an educated one. If citizens were to vote, serve on juries, and better their own circumstances, the reasoning went, they required access to information that few could afford to buy. Tax-supported public libraries, open to rich and poor alike, were the practical answer.
+
+The effects were profound and often personal. Countless people who could never have assembled a private library taught themselves history, science, and literature within public reading rooms. Inventors studied technical manuals; immigrants learned the language and laws of their new countries; children discovered worlds far beyond their neighborhoods. The library asked nothing in return but the promise to bring the books back.
+
+Today the mission has widened. Modern libraries lend not only books but audio recordings, films, and digital files; they offer internet access to those without it, host classes, and serve as gathering places safe from the pressures of commerce. Critics occasionally ask whether such institutions are still necessary in an age of cheap information. Their defenders reply that access is not the same as equality, and that a place where anyone may learn, regardless of means, remains as valuable as it ever was.`,
+    questions: [
+      ["The passage is mainly about",
+        ["the destruction of ancient libraries","the rise and value of free public libraries","how to write a book","the cost of printing"], 1],
+      ["For most of history, reading was mainly limited to",
+        ["children","the wealthy and the church","factory workers","government officials"], 1],
+      ["According to the passage, public libraries gained support in the 1800s partly because reformers believed",
+        ["books had become worthless","a self-governing people needed to be educated","reading was dangerous","only the rich should vote"], 1],
+      ["The statement that the library 'asked nothing in return but the promise to bring the books back' emphasizes its",
+        ["strict rules","openness and generosity","high cost","small size"], 1],
+      ["It can be inferred that the author would most likely agree that",
+        ["libraries are now obsolete","free access to knowledge still matters","only printed books count","libraries should charge fees"], 1],
+      ["The author responds to critics by arguing that",
+        ["information is already free","access is not the same as equality","libraries should close","books are outdated"], 1],
+      ["In this passage, 'profound' most nearly means",
+        ["shallow","deep and far-reaching","brief","confusing"], 1]
+    ]
   }
 ];
 
@@ -561,6 +616,11 @@ function startMode(mode){
   if(mode==="vocab"){ items=buildVocabItems(20); seconds=8*60; title="Vocabulary"; }
   else if(mode==="exam"){ items=buildVocabItems(80); seconds=15*60; title="Full Vocab Test"; }
   else if(mode==="comp"){ items=buildCompItems(shuffle(PASSAGES).slice(0,2)); seconds=12*60; title="Comprehension"; }
+  else if(mode==="fullread"){
+    const ps=shuffle(PASSAGES), chosen=[]; let q=0;
+    for(const p of ps){ chosen.push(p); q+=p.questions.length; if(q>=38) break; }
+    items=buildCompItems(chosen); seconds=20*60; title="Full Reading Test";
+  }
   else if(mode==="missed"){
     items=buildMissedItems();
     if(!items.length){ alert("Your Missed Words box is empty — get some vocab wrong and they'll collect here for review."); show("home"); return; }
@@ -772,6 +832,7 @@ function renderBest(){
   const parts=[];
   if(b.exam) parts.push(`Test ${b.exam}%`);
   if(b.vocab) parts.push(`Vocab ${b.vocab}%`);
+  if(b.fullread) parts.push(`Read ${b.fullread}%`);
   if(b.comp) parts.push(`Comp ${b.comp}%`);
   if(b.rate) parts.push(`${b.rate} wpm`);
   $("bestPill").textContent=parts.length?("Best: "+parts.join(" · ")):"";
