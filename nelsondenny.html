@@ -71,6 +71,9 @@
 
   <!-- HOME -->
   <section id="home">
+    <button class="modeBtn" data-mode="exam" style="border-color:var(--accent);background:linear-gradient(135deg,rgba(77,141,255,.20),var(--panel2))">
+      <span><b>🎯 Full Vocab Test</b><small>80 questions · 15-minute timer · real test format</small></span><span class="go">›</span>
+    </button>
     <button class="modeBtn" data-mode="vocab">
       <span><b>Vocabulary</b><small>Pick the closest meaning · timed synonyms</small></span><span class="go">›</span>
     </button>
@@ -252,7 +255,51 @@ const VOCAB = [
   ["inept", ["skilled","incompetent","loud","rigid","eager"], 1],
   ["jeopardy", ["safety","danger","noise","haste","gloom"], 1],
   ["lavish", ["stingy","extravagant","calm","brief","loyal"], 1],
-  ["mock", ["respect","ridicule","gather","soften","delay"], 1]
+  ["mock", ["respect","ridicule","gather","soften","delay"], 1],
+  ["abstain", ["indulge","refrain","gather","polish","delay"], 1],
+  ["adept", ["clumsy","skilled","gloomy","hollow","brief"], 1],
+  ["bleak", ["cheerful","dreary","loud","rigid","eager"], 1],
+  ["cordial", ["hostile","friendly","calm","brief","loyal"], 1],
+  ["defy", ["obey","resist","gather","soften","predict"], 1],
+  ["elaborate", ["simple","detailed","loud","rigid","eager"], 1],
+  ["fickle", ["steady","changeable","gloomy","hollow","rapid"], 1],
+  ["gauge", ["ignore","measure","gather","polish","delay"], 1],
+  ["hoard", ["give away","stockpile","confuse","polish","delay"], 1],
+  ["impede", ["assist","obstruct","gather","soften","predict"], 1],
+  ["keen", ["dull","sharp","gloomy","hollow","rapid"], 1],
+  ["legible", ["unreadable","readable","loud","rigid","eager"], 1],
+  ["malice", ["kindness","ill will","noise","haste","gloom"], 1],
+  ["novel", ["ordinary","new and original","calm","brief","loyal"], 1],
+  ["omit", ["include","leave out","gather","soften","delay"], 1],
+  ["potent", ["weak","powerful","gloomy","hollow","rapid"], 1],
+  ["quaint", ["modern","charmingly old-fashioned","loud","rigid","eager"], 1],
+  ["rebuke", ["praise","scold","gather","polish","predict"], 1],
+  ["sinister", ["harmless","threatening","calm","brief","loyal"], 1],
+  ["thrifty", ["wasteful","economical","gloomy","hollow","rapid"], 1],
+  ["undermine", ["strengthen","weaken","gather","soften","delay"], 1],
+  ["venture", ["stay safe","dare","noise","haste","gloom"], 1],
+  ["wane", ["grow","decrease","loud","rigid","eager"], 1],
+  ["exemplary", ["poor","outstanding","calm","brief","loyal"], 1],
+  ["zenith", ["lowest point","peak","gather","polish","predict"], 1],
+  ["abrupt", ["gradual","sudden","gloomy","hollow","rapid"], 1],
+  ["bountiful", ["scarce","plentiful","loud","rigid","eager"], 1],
+  ["clarify", ["confuse","make clear","gather","soften","delay"], 1],
+  ["dismal", ["cheerful","gloomy","noise","haste","calm"], 1],
+  ["earnest", ["insincere","sincere","loud","rigid","eager"], 1],
+  ["feasible", ["impossible","doable","gloomy","hollow","rapid"], 1],
+  ["glisten", ["dull","sparkle","gather","polish","delay"], 1],
+  ["humble", ["arrogant","modest","calm","brief","loyal"], 1],
+  ["incentive", ["discouragement","motivation","noise","haste","gloom"], 1],
+  ["lull", ["agitate","soothe","loud","rigid","eager"], 1],
+  ["meager", ["abundant","scanty","gloomy","hollow","rapid"], 1],
+  ["nurture", ["neglect","nourish","gather","soften","delay"], 1],
+  ["optimal", ["worst","best","calm","brief","loyal"], 1],
+  ["prone", ["unlikely","inclined","noise","haste","gloom"], 1],
+  ["quiver", ["steady","tremble","loud","rigid","eager"], 1],
+  ["radiant", ["dull","glowing","gloomy","hollow","rapid"], 1],
+  ["sluggish", ["energetic","slow","gather","polish","delay"], 1],
+  ["tactful", ["rude","diplomatic","calm","brief","loyal"], 1],
+  ["vivid", ["faint","bright and clear","noise","haste","gloom"], 1]
 ];
 
 const PASSAGES = [
@@ -395,6 +442,58 @@ The consequences reached far beyond trade. New York City, with its new water hig
       ["The critics' phrase 'impossible ditch' shows that they",
         ["strongly supported the canal","doubted it could succeed","had already built one","wanted a railroad instead"], 1]
     ]
+  },
+  {
+    title: "Coral Reefs",
+    text: `Coral reefs are often called the rainforests of the sea, and the comparison is apt. Though reefs cover less than one percent of the ocean floor, they shelter roughly a quarter of all marine species at some point in their lives. Fish spawn among their branches, crabs and eels hide in their crevices, and countless smaller creatures graze on the life that coats their surfaces. A healthy reef is one of the most crowded neighborhoods on Earth.
+
+What makes this abundance stranger still is the water in which reefs thrive. Tropical seas are famously clear and blue precisely because they are poor in the floating nutrients that feed life elsewhere. A reef, then, is an island of plenty in a watery desert. Its secret lies in a partnership. The coral animal, a tiny relative of the jellyfish, hosts even tinier algae inside its tissues. The algae capture sunlight and share the food they make; in return, the coral offers shelter and raw materials. Together they build the vast limestone structures that give the reef its shape.
+
+That partnership, however, is fragile. When the surrounding water grows too warm, the coral expels its algae and turns a ghostly white, an event known as bleaching. A bleached coral is not yet dead, but it is starving, and if the heat persists it will not recover. As ocean temperatures climb, mass bleaching events that were once rare have become alarmingly frequent. Scientists warn that reefs which took thousands of years to grow could be lost within a single human lifetime.
+
+The stakes extend well beyond the water. Reefs buffer coastlines from storm waves, support fisheries that feed hundreds of millions of people, and draw tourists whose spending sustains whole economies. To lose them would be to lose not only a marvel of nature but a quiet source of security for much of humanity.`,
+    questions: [
+      ["The main idea of the passage is that coral reefs are",
+        ["easy to replace","biologically rich but increasingly threatened","found in every ocean","made entirely of algae"], 1],
+      ["The comparison of reefs to rainforests is used mainly to emphasize their",
+        ["height","great variety of life","warm temperature","bright color"], 1],
+      ["According to the passage, tropical seas are clear and blue because they",
+        ["contain few floating nutrients","are very deep","have no coral","are extremely cold"], 1],
+      ["The relationship between coral and algae is best described as",
+        ["one that harms the coral","a mutual partnership that benefits both","competition for sunlight","temporary and rare"], 1],
+      ["It can be inferred that a bleached coral",
+        ["has already died","is under stress and may die if heat continues","has too many algae","is perfectly healthy"], 1],
+      ["The author's purpose in the final paragraph is to",
+        ["describe how reefs are built","explain why reefs matter to people","argue that reefs are worthless","list types of fish"], 1],
+      ["In this passage, 'buffer' most nearly means",
+        ["destroy","protect","flood","warm"], 1]
+    ]
+  },
+  {
+    title: "The Origins of Money",
+    text: `For much of history, people managed without money, exchanging goods directly in what we call barter. A farmer with surplus grain might trade it to a potter for bowls. Simple as it sounds, barter carries a stubborn flaw that economists call the double coincidence of wants: the farmer must find not just anyone with bowls, but a potter who happens to want grain at that very moment. When wants fail to match, no trade can happen, and useful goods sit idle.
+
+Money solves this problem by acting as a good that everyone is willing to accept. The farmer can sell grain to whoever needs it, receive money, and later spend that money on bowls, tools, or anything else. Money serves three related roles: a medium of exchange that all parties accept, a unit of account that lets prices be compared, and a store of value that holds worth over time so wealth can be saved.
+
+The forms money has taken are surprisingly varied. Societies have used cattle, salt, shells, and beads as currency, and later turned to metals such as silver and gold, which are durable, divisible, and hard to counterfeit. Eventually rulers stamped metal into coins of guaranteed weight, and much later, paper notes came to stand in for stored metal. Today most money exists only as numbers in electronic accounts, backed not by metal but by public trust and the authority of governments.
+
+That last point reveals something essential. Money has value only because a community agrees that it does. A coin is a promise as much as an object, and the entire system rests on the confidence that others will honor the same promise tomorrow. When that confidence collapses, as it has during episodes of runaway inflation, money can become as worthless as the paper it is printed on.`,
+    questions: [
+      ["The passage is primarily concerned with",
+        ["how coins are minted","why money developed and what it does","the history of farming","how to prevent counterfeiting"], 1],
+      ["The 'double coincidence of wants' refers to the problem that",
+        ["prices are hard to compare","both traders must want what the other offers","money loses value","goods spoil quickly"], 1],
+      ["According to the passage, which is NOT listed as a role of money?",
+        ["medium of exchange","unit of account","store of value","source of raw materials"], 3],
+      ["Metals like gold and silver became popular as money partly because they are",
+        ["easy to eat","durable and hard to counterfeit","brightly colored","found everywhere"], 1],
+      ["The author suggests that modern electronic money is backed mainly by",
+        ["stored gold","public trust and government authority","cattle and salt","printed paper"], 1],
+      ["The statement that 'a coin is a promise as much as an object' mainly conveys that money's value depends on",
+        ["its metal content","shared confidence among people","the ruler's portrait","its weight"], 1],
+      ["The author's tone throughout the passage is best described as",
+        ["explanatory","angry","sorrowful","sarcastic"], 0]
+    ]
   }
 ];
 
@@ -460,6 +559,7 @@ function startMode(mode){
   if(mode==="rate"){ show("rate"); startRate(); return; }
   let items, seconds, title;
   if(mode==="vocab"){ items=buildVocabItems(20); seconds=8*60; title="Vocabulary"; }
+  else if(mode==="exam"){ items=buildVocabItems(80); seconds=15*60; title="Full Vocab Test"; }
   else if(mode==="comp"){ items=buildCompItems(shuffle(PASSAGES).slice(0,2)); seconds=12*60; title="Comprehension"; }
   else if(mode==="missed"){
     items=buildMissedItems();
@@ -670,6 +770,7 @@ function saveBest(mode,val){
 function renderBest(){
   const b=JSON.parse(localStorage.getItem("nd.best")||"{}");
   const parts=[];
+  if(b.exam) parts.push(`Test ${b.exam}%`);
   if(b.vocab) parts.push(`Vocab ${b.vocab}%`);
   if(b.comp) parts.push(`Comp ${b.comp}%`);
   if(b.rate) parts.push(`${b.rate} wpm`);
