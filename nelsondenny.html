@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1220">
+<title>Nelson-Denny Practice</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#141d2e; --panel2:#1d2942; --line:#2b3a58;
+    --text:#e8eef7; --muted:#93a2bd; --accent:#4d8dff; --good:#33d17a; --bad:#ff6b6b; --warn:#ffb02e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+  .wrap{max-width:640px;margin:0 auto;padding:20px 18px 60px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  header h1{font-size:22px}
+  header h1 span{color:var(--accent)}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
+  .modeBtn{width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:16px 18px;color:var(--text);cursor:pointer;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .modeBtn:active{filter:brightness(1.15)}
+  .modeBtn b{font-size:17px}
+  .modeBtn small{display:block;color:var(--muted);font-weight:400;font-size:13px;margin-top:3px}
+  .modeBtn .go{color:var(--accent);font-size:22px}
+  .bigbtn{width:100%;padding:16px;border:none;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;background:var(--accent);color:#04152e}
+  .bigbtn:disabled{opacity:.4}
+  .ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:14px;color:var(--muted)}
+  .timer{font-variant-numeric:tabular-nums;font-weight:700;color:var(--text);background:var(--panel2);padding:6px 12px;border-radius:999px;border:1px solid var(--line)}
+  .timer.low{color:var(--bad);border-color:var(--bad)}
+  .prog{height:6px;background:var(--panel2);border-radius:3px;overflow:hidden;margin-bottom:16px}
+  .prog>div{height:100%;background:var(--accent);width:0;transition:width .3s}
+  .qword{font-size:26px;font-weight:800;text-align:center;margin:8px 0 4px}
+  .qlabel{color:var(--muted);font-size:13px;text-align:center;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px}
+  .passage{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;font-size:16px;max-height:46vh;overflow:auto}
+  .passage h3{font-size:16px;margin-bottom:8px;color:var(--accent)}
+  .qtext{font-size:17px;font-weight:600;margin-bottom:14px}
+  .choice{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px 15px;color:var(--text);cursor:pointer;margin-bottom:10px;font-size:16px;transition:.12s}
+  .choice:hover{border-color:var(--accent)}
+  .choice.sel{border-color:var(--accent);background:rgba(77,141,255,.14)}
+  .choice.correct{border-color:var(--good);background:rgba(51,209,122,.16)}
+  .choice.wrong{border-color:var(--bad);background:rgba(255,107,107,.16)}
+  .choice .k{display:inline-block;width:22px;color:var(--muted);font-weight:700}
+  .nav{display:flex;gap:10px;margin-top:8px}
+  .nav button{flex:1}
+  .result-score{font-size:56px;font-weight:800;text-align:center;margin:6px 0}
+  .result-grade{text-align:center;font-size:19px;margin-bottom:6px}
+  .pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+  .review-item{border-top:1px solid var(--line);padding:12px 0;font-size:15px}
+  .review-item .rq{font-weight:600;margin-bottom:4px}
+  .review-item .ra{color:var(--good)}
+  .review-item .rx{color:var(--bad)}
+  .note{font-size:12px;color:var(--muted);margin-top:14px}
+  .hidden{display:none}
+  .center{text-align:center}
+  .wpm{font-size:48px;font-weight:800;text-align:center}
+  .statrow{display:flex;gap:10px;margin:14px 0}
+  .stat{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+  .stat b{font-size:22px;display:block}
+  .stat small{color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Nelson<span>·</span>Denny <span>Prep</span></h1>
+    <span class="pill" id="bestPill"></span>
+  </header>
+  <div class="sub">Practice for the reading test — original questions in the real format. Not affiliated with the official test.</div>
+
+  <!-- HOME -->
+  <section id="home">
+    <button class="modeBtn" data-mode="vocab">
+      <span><b>Vocabulary</b><small>Pick the closest meaning · timed synonyms</small></span><span class="go">›</span>
+    </button>
+    <button class="modeBtn" data-mode="comp">
+      <span><b>Reading Comprehension</b><small>Passages · main idea, detail & inference</small></span><span class="go">›</span>
+    </button>
+    <button class="modeBtn" data-mode="rate">
+      <span><b>Reading Rate</b><small>Measure your words-per-minute & grade level</small></span><span class="go">›</span>
+    </button>
+    <button class="modeBtn" data-mode="full">
+      <span><b>Full Practice Set</b><small>Vocab + comprehension, scored together</small></span><span class="go">›</span>
+    </button>
+
+    <div class="card">
+      <b style="font-size:15px">Test-day tips</b>
+      <ul style="margin:10px 0 0 18px;color:var(--muted);font-size:14px">
+        <li>It's timed — pace yourself, don't stall on one hard item.</li>
+        <li>Skim the questions before reading each passage.</li>
+        <li>Answer everything; a blank scores the same as a wrong guess.</li>
+        <li>Confirm Philly PD's current passing grade level on joinphillypd.com.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz" class="hidden">
+    <div class="topbar">
+      <button class="ghost" style="border-radius:999px;padding:6px 12px;cursor:pointer" id="quitBtn">✕ quit</button>
+      <span id="qCount"></span>
+      <span class="timer" id="timer">--:--</span>
+    </div>
+    <div class="prog"><div id="progFill"></div></div>
+    <div id="passageWrap"></div>
+    <div id="qBody"></div>
+    <div class="nav">
+      <button class="bigbtn ghost" id="prevBtn">‹ Back</button>
+      <button class="bigbtn" id="nextBtn">Next ›</button>
+    </div>
+  </section>
+
+  <!-- READING RATE -->
+  <section id="rate" class="hidden">
+    <div id="rateIntro">
+      <div class="card">
+        <b style="font-size:16px">Reading Rate test</b>
+        <p style="color:var(--muted);font-size:14px;margin-top:8px">
+          When you tap start, a passage appears and a timer begins. Read at your normal, careful pace —
+          you'll answer 2 quick questions after to prove you understood it. Tap <b>I'm done reading</b> the moment you finish.
+        </p>
+      </div>
+      <button class="bigbtn" id="rateStart">Start reading</button>
+      <button class="bigbtn ghost" id="rateBack" style="margin-top:10px">‹ Home</button>
+    </div>
+    <div id="rateReading" class="hidden">
+      <div class="topbar"><span class="pill">reading…</span><span class="timer" id="rateTimer">0.0s</span></div>
+      <div class="passage" id="ratePassage" style="max-height:60vh"></div>
+      <button class="bigbtn" id="rateDone">I'm done reading</button>
+    </div>
+    <div id="rateQuiz" class="hidden"></div>
+    <div id="rateResult" class="hidden"></div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results" class="hidden"></section>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   ORIGINAL PRACTICE CONTENT (not real test items)
+   ========================================================= */
+const VOCAB = [
+  ["abate", ["lessen","expand","confuse","reserve","polish"], 0],
+  ["candid", ["hidden","frank","clumsy","gentle","brief"], 1],
+  ["deter", ["encourage","delay","discourage","predict","repair"], 2],
+  ["frugal", ["wasteful","thrifty","cheerful","hollow","rapid"], 1],
+  ["hinder", ["assist","obstruct","polish","gather","soften"], 1],
+  ["lucid", ["clear","dizzy","strict","loyal","dull"], 0],
+  ["novice", ["expert","beginner","leader","rival","witness"], 1],
+  ["obscure", ["famous","unclear","eager","costly","rigid"], 1],
+  ["prudent", ["reckless","cautious","noisy","hollow","brief"], 1],
+  ["rigid", ["flexible","stiff","cheap","calm","vague"], 1],
+  ["scarce", ["plentiful","rare","loud","smooth","brave"], 1],
+  ["tedious", ["exciting","tiresome","polite","sudden","fragile"], 1],
+  ["vague", ["precise","unclear","loyal","eager","harsh"], 1],
+  ["wary", ["careless","cautious","joyful","hollow","plain"], 1],
+  ["zealous", ["lazy","enthusiastic","gloomy","gentle","brief"], 1],
+  ["benevolent", ["cruel","kind","dull","rapid","hollow"], 1],
+  ["concise", ["wordy","brief","loud","fragile","rigid"], 1],
+  ["diligent", ["careless","hardworking","timid","hollow","sudden"], 1],
+  ["eloquent", ["clumsy","well-spoken","greedy","plain","harsh"], 1],
+  ["futile", ["useful","useless","gentle","rapid","loyal"], 1],
+  ["gregarious", ["shy","sociable","strict","hollow","brief"], 1],
+  ["hostile", ["friendly","unfriendly","calm","plain","eager"], 1],
+  ["impartial", ["biased","fair","loud","fragile","rigid"], 1],
+  ["meticulous", ["sloppy","careful","timid","hollow","rapid"], 1],
+  ["negligent", ["careful","careless","joyful","strict","brief"], 1],
+  ["obstinate", ["agreeable","stubborn","gentle","hollow","plain"], 1],
+  ["placid", ["stormy","calm","greedy","rapid","harsh"], 1],
+  ["reluctant", ["eager","unwilling","loud","fragile","rigid"], 1],
+  ["surplus", ["shortage","excess","calm","plain","brief"], 1],
+  ["trivial", ["important","unimportant","loyal","rapid","harsh"], 1],
+  ["unanimous", ["divided","in full agreement","noisy","hollow","brief"], 1],
+  ["verify", ["deny","confirm","gather","soften","delay"], 1],
+  ["adequate", ["insufficient","sufficient","loud","fragile","rigid"], 1],
+  ["arduous", ["easy","difficult","gentle","hollow","plain"], 1],
+  ["candor", ["deceit","honesty","noise","haste","gloom"], 1],
+  ["mitigate", ["worsen","ease","gather","predict","polish"], 1]
+];
+
+const PASSAGES = [
+  {
+    title: "Foot Patrols",
+    text: `For most of the twentieth century, police work in large American cities moved steadily into patrol cars. Radios and automobiles let a small number of officers cover wide areas quickly, and departments came to measure success by how fast a car could reach a call. Yet something was lost in the shift. An officer racing from one emergency to the next rarely learned the names of the shopkeepers, parents, and teenagers on a given block.
+
+Beginning in the 1980s, many departments revived an older idea: the foot patrol. An officer walking a regular beat sees the same faces day after day. Residents grow comfortable sharing small concerns — a broken streetlight, a group of strangers loitering — long before those concerns become emergencies. Studies of foot patrols found that while they did not always reduce the raw number of serious crimes, they consistently made residents feel safer and more willing to cooperate with police.
+
+That cooperation matters. Detectives solve far more cases when neighbors are willing to talk, and a community that trusts its officers is quicker to report trouble. Foot patrol is slower and covers less ground than a squad car, but its defenders argue that policing was never only about speed. It is also about relationships, and relationships are built one conversation at a time.`,
+    questions: [
+      ["The main idea of the passage is that",
+        ["patrol cars should be eliminated","foot patrols build trust that helps policing","crime rose in the 1980s","radios made officers lazy"], 1],
+      ["According to the passage, patrol cars became popular because they",
+        ["were cheaper than officers","let few officers cover wide areas quickly","reduced all serious crime","were required by law"], 1],
+      ["Studies of foot patrols found that they",
+        ["always cut serious crime sharply","made residents feel safer even when crime numbers held steady","were disliked by residents","replaced all detectives"], 1],
+      ["It can be inferred that the author believes policing",
+        ["is only about response speed","depends partly on community relationships","should avoid technology","is no longer necessary"], 1],
+      ["In this passage, the word 'revived' most nearly means",
+        ["abandoned","brought back","criticized","recorded"], 1]
+    ]
+  },
+  {
+    title: "Bees",
+    text: `A single honeybee may seem insignificant, but the work of a hive ripples across entire landscapes. As bees travel from flower to flower gathering nectar, grains of pollen cling to their bodies and rub off on the next blossom. This accidental transfer, called pollination, allows many plants to produce the fruits and seeds that feed countless other animals — including humans.
+
+Roughly a third of the food we eat depends, directly or indirectly, on animal pollinators, and bees do the largest share of that labor. Apples, almonds, blueberries, and squash all yield poorly without them. Farmers know this well; some truck hundreds of hives across the country each spring so that orchards will bear fruit.
+
+In recent decades, beekeepers have reported troubling losses. Colonies sometimes collapse when the adult bees abandon a hive for reasons scientists are still untangling. Pesticides, parasites, disease, and the loss of wildflower habitat all appear to play a part, and they may act together rather than alone. The uncertainty is itself a warning: a food system that leans so heavily on one small insect is more fragile than it looks.`,
+    questions: [
+      ["The passage is mainly about",
+        ["how honey is made","the importance of bees to our food supply","why farmers dislike orchards","how bees build hives"], 1],
+      ["Pollination is described as",
+        ["a deliberate act by farmers","an accidental transfer of pollen by bees","a type of disease","a kind of nectar"], 1],
+      ["According to the passage, about how much of our food depends on animal pollinators?",
+        ["all of it","about a third","almost none","exactly half"], 1],
+      ["The author suggests that colony collapse is",
+        ["fully explained by pesticides alone","probably caused by several factors together","harmless to farming","a recent hoax"], 1],
+      ["The author's tone in the final paragraph is best described as",
+        ["cheerful","concerned","angry","indifferent"], 1]
+    ]
+  },
+  {
+    title: "The Printing Press",
+    text: `Before the middle of the fifteenth century, nearly every book in Europe was copied by hand. A single Bible could take a scribe more than a year to complete, and the cost put books far beyond the reach of ordinary people. Knowledge moved slowly and stayed in the hands of a few.
+
+Around 1450, a German craftsman named Johannes Gutenberg combined several existing ideas into one powerful machine. He cast individual letters in metal that could be arranged, inked, pressed onto paper, and then rearranged for the next page. This system of movable type made it possible to produce hundreds of identical copies in the time it once took to make one.
+
+The effects were enormous and often unexpected. As printed books multiplied, they grew cheaper, and more people learned to read. New ideas — scientific, religious, and political — spread across borders faster than any authority could control them. Rulers who had relied on controlling information found that far harder to do. Gutenberg had set out to sell books, but he had, without quite intending to, helped remake the world.`,
+    questions: [
+      ["The best title for this passage would be",
+        ["The Life of Johannes Gutenberg","How the Printing Press Changed the World","Making Paper in Europe","The History of the Bible"], 1],
+      ["Before the printing press, books were",
+        ["cheap and common","copied slowly by hand","printed with movable type","banned in Europe"], 1],
+      ["Gutenberg's key innovation was",
+        ["inventing paper","movable metal type","teaching people to read","writing the first Bible"], 1],
+      ["It can be inferred that movable type made it harder for rulers to",
+        ["sell books","control the spread of ideas","travel across borders","cast metal letters"], 1],
+      ["In this passage, 'multiplied' most nearly means",
+        ["divided","increased in number","disappeared","were translated"], 1]
+    ]
+  }
+];
+
+/* =========================================================
+   helpers
+   ========================================================= */
+const $ = id => document.getElementById(id);
+const show = id => $(id).classList.remove("hidden");
+const hide = id => $(id).classList.add("hidden");
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
+function wordCount(t){ return t.trim().split(/\s+/).length; }
+const KEYS = ["A","B","C","D","E"];
+
+function gradeEstimate(pct){
+  if(pct>=88) return "≈ college level";
+  if(pct>=78) return "≈ 12th grade";
+  if(pct>=68) return "≈ 11th grade";
+  if(pct>=56) return "≈ 10th grade";
+  if(pct>=44) return "≈ 9th grade";
+  return "below 9th grade — keep practicing";
+}
+
+/* =========================================================
+   QUIZ ENGINE (vocab / comprehension / full)
+   ========================================================= */
+let quiz = null;
+
+function buildVocabItems(n){
+  return shuffle(VOCAB).slice(0,n).map(([word,choices,ans])=>{
+    const order = shuffle(choices.map((c,i)=>({c,i})));
+    return { kind:"vocab", word, choices:order.map(o=>o.c), answer:order.findIndex(o=>o.i===ans), picked:null };
+  });
+}
+function buildCompItems(passages){
+  const items=[];
+  for(const p of passages){
+    p.questions.forEach((q,qi)=>{
+      const [text,choices,ans]=q;
+      const order=shuffle(choices.map((c,i)=>({c,i})));
+      items.push({ kind:"comp", passageTitle:p.title, passageText:p.text,
+        showPassage: qi===0, qtext:text, choices:order.map(o=>o.c),
+        answer:order.findIndex(o=>o.i===ans), picked:null });
+    });
+  }
+  return items;
+}
+
+function startMode(mode){
+  hide("home");
+  if(mode==="rate"){ show("rate"); startRate(); return; }
+  let items, seconds, title;
+  if(mode==="vocab"){ items=buildVocabItems(20); seconds=8*60; title="Vocabulary"; }
+  else if(mode==="comp"){ items=buildCompItems(shuffle(PASSAGES).slice(0,2)); seconds=12*60; title="Comprehension"; }
+  else { items=[...buildVocabItems(15), ...buildCompItems(shuffle(PASSAGES).slice(0,2))]; seconds=18*60; title="Full Set"; }
+  quiz={ mode,title,items,idx:0,seconds,left:seconds,timer:null };
+  show("quiz");
+  tickStart();
+  renderQ();
+}
+
+function tickStart(){
+  updateTimer();
+  quiz.timer=setInterval(()=>{
+    quiz.left--;
+    updateTimer();
+    if(quiz.left<=0){ clearInterval(quiz.timer); finishQuiz(); }
+  },1000);
+}
+function updateTimer(){
+  const m=Math.floor(quiz.left/60), s=quiz.left%60;
+  const el=$("timer");
+  el.textContent=`${m}:${String(s).padStart(2,"0")}`;
+  el.classList.toggle("low", quiz.left<=30);
+}
+
+function renderQ(){
+  const it=quiz.items[quiz.idx];
+  $("qCount").textContent=`${quiz.idx+1} / ${quiz.items.length}`;
+  $("progFill").style.width=((quiz.idx)/quiz.items.length*100)+"%";
+  // passage
+  const pw=$("passageWrap");
+  if(it.kind==="comp" && it.showPassage){
+    pw.innerHTML=`<div class="passage"><h3>${it.passageTitle}</h3>${it.passageText.split("\n\n").map(p=>`<p style="margin-bottom:10px">${p}</p>`).join("")}</div>`;
+  } else if(it.kind==="comp"){
+    pw.innerHTML=`<div class="note">↑ Refer to the passage “${it.passageTitle}” above.</div>`;
+  } else pw.innerHTML="";
+  // body
+  let html="";
+  if(it.kind==="vocab"){
+    html+=`<div class="qlabel">Choose the closest meaning</div><div class="qword">${it.word}</div>`;
+  } else {
+    html+=`<div class="qtext">${it.qtext}</div>`;
+  }
+  it.choices.forEach((c,i)=>{
+    const sel=it.picked===i?"sel":"";
+    html+=`<button class="choice ${sel}" data-i="${i}"><span class="k">${KEYS[i]}</span>${c}</button>`;
+  });
+  $("qBody").innerHTML=html;
+  $("qBody").querySelectorAll(".choice").forEach(b=>{
+    b.onclick=()=>{ it.picked=+b.dataset.i; renderQ(); };
+  });
+  $("prevBtn").disabled=quiz.idx===0;
+  $("nextBtn").textContent=quiz.idx===quiz.items.length-1?"Finish ✓":"Next ›";
+}
+
+$("nextBtn").onclick=()=>{
+  if(quiz.idx===quiz.items.length-1) finishQuiz();
+  else { quiz.idx++; renderQ(); window.scrollTo({top:0,behavior:"smooth"}); }
+};
+$("prevBtn").onclick=()=>{ if(quiz.idx>0){ quiz.idx--; renderQ(); window.scrollTo({top:0,behavior:"smooth"}); } };
+$("quitBtn").onclick=()=>{ if(confirm("Quit this practice set?")){ clearInterval(quiz.timer); backHome(); } };
+
+function finishQuiz(){
+  clearInterval(quiz.timer);
+  hide("quiz");
+  const total=quiz.items.length;
+  const correct=quiz.items.filter(it=>it.picked===it.answer).length;
+  const pct=Math.round(correct/total*100);
+  saveBest(quiz.mode,pct);
+  let review=quiz.items.map((it,n)=>{
+    const ok=it.picked===it.answer;
+    const label=it.kind==="vocab"?it.word:`Q${n+1}`;
+    const your=it.picked==null?"—":it.choices[it.picked];
+    return `<div class="review-item">
+      <div class="rq">${label}${it.kind==="comp"?": "+it.qtext:""}</div>
+      <div class="${ok?'ra':'rx'}">${ok?"✓":"✗"} Your answer: ${your}</div>
+      ${ok?"":`<div class="ra">✓ Correct: ${it.choices[it.answer]}</div>`}
+    </div>`;
+  }).join("");
+  $("results").innerHTML=`
+    <div class="card center">
+      <div class="qlabel">${quiz.title} — result</div>
+      <div class="result-score">${pct}%</div>
+      <div class="result-grade">${correct} of ${total} correct</div>
+      <div class="result-grade"><span class="pill">${gradeEstimate(pct)}</span></div>
+      <div class="note">Rough practice estimate only — not an official Nelson-Denny score.</div>
+    </div>
+    <div class="card"><b>Review</b>${review}</div>
+    <button class="bigbtn" id="againBtn">Practice again</button>
+    <button class="bigbtn ghost" id="homeBtn" style="margin-top:10px">‹ Home</button>`;
+  show("results");
+  $("againBtn").onclick=()=>{ hide("results"); startMode(quiz.mode); };
+  $("homeBtn").onclick=backHome;
+  window.scrollTo({top:0});
+}
+
+function backHome(){
+  ["quiz","results","rate"].forEach(hide);
+  show("home");
+  renderBest();
+  window.scrollTo({top:0});
+}
+
+/* =========================================================
+   READING RATE
+   ========================================================= */
+let rate=null;
+function startRate(){
+  ["rateReading","rateQuiz","rateResult"].forEach(hide);
+  show("rateIntro");
+}
+$("rateStart").onclick=()=>{
+  const p=PASSAGES[(Math.random()*PASSAGES.length)|0];
+  rate={ passage:p, words:wordCount(p.text), t0:performance.now(), timer:null };
+  hide("rateIntro"); show("rateReading");
+  $("ratePassage").innerHTML=`<h3>${p.title}</h3>`+p.text.split("\n\n").map(x=>`<p style="margin-bottom:10px">${x}</p>`).join("");
+  $("ratePassage").scrollTop=0;
+  rate.timer=setInterval(()=>{
+    $("rateTimer").textContent=((performance.now()-rate.t0)/1000).toFixed(1)+"s";
+  },100);
+};
+$("rateDone").onclick=()=>{
+  clearInterval(rate.timer);
+  rate.secs=(performance.now()-rate.t0)/1000;
+  rate.wpm=Math.round(rate.words/(rate.secs/60));
+  hide("rateReading");
+  // 2 comprehension checks from that passage
+  rate.checks=shuffle(rate.passage.questions).slice(0,2).map(q=>{
+    const [text,choices,ans]=q;
+    const order=shuffle(choices.map((c,i)=>({c,i})));
+    return { qtext:text, choices:order.map(o=>o.c), answer:order.findIndex(o=>o.i===ans), picked:null };
+  });
+  renderRateQuiz();
+};
+function renderRateQuiz(){
+  show("rateQuiz");
+  $("rateQuiz").innerHTML=`<div class="card"><b>Quick check</b><div class="note">Answer to confirm you read it.</div></div>`+
+    rate.checks.map((c,ci)=>`<div class="card"><div class="qtext">${c.qtext}</div>${
+      c.choices.map((ch,i)=>`<button class="choice" data-c="${ci}" data-i="${i}"><span class="k">${KEYS[i]}</span>${ch}</button>`).join("")
+    }</div>`).join("")+`<button class="bigbtn" id="rateFinish">See my result</button>`;
+  $("rateQuiz").querySelectorAll(".choice").forEach(b=>{
+    b.onclick=()=>{ const ci=+b.dataset.c; rate.checks[ci].picked=+b.dataset.i;
+      $("rateQuiz").querySelectorAll(`[data-c="${ci}"]`).forEach(x=>x.classList.remove("sel"));
+      b.classList.add("sel"); };
+  });
+  $("rateFinish").onclick=showRateResult;
+}
+function showRateResult(){
+  hide("rateQuiz"); show("rateResult");
+  const got=rate.checks.filter(c=>c.picked===c.answer).length;
+  let interp;
+  if(rate.wpm<150) interp="below average — practice reading in steady lines without re-reading";
+  else if(rate.wpm<250) interp="average adult range";
+  else if(rate.wpm<350) interp="good, above average";
+  else interp="very fast — just keep comprehension high";
+  const comprehendNote = got<2 ? " Slow down slightly; speed only counts if you understand it." : " Nice — you kept comprehension while reading.";
+  saveBest("rate", rate.wpm);
+  $("rateResult").innerHTML=`
+    <div class="card center">
+      <div class="qlabel">Your reading rate</div>
+      <div class="wpm">${rate.wpm}</div>
+      <div class="result-grade">words per minute</div>
+      <div class="statrow">
+        <div class="stat"><b>${rate.secs.toFixed(1)}s</b><small>time</small></div>
+        <div class="stat"><b>${rate.words}</b><small>words</small></div>
+        <div class="stat"><b>${got}/2</b><small>comprehension</small></div>
+      </div>
+      <div class="result-grade"><span class="pill">${interp}</span></div>
+      <div class="note">The average adult reads ~250 wpm. Comprehension matters more than raw speed.${comprehendNote}</div>
+    </div>
+    <button class="bigbtn" id="rateAgain">Try again</button>
+    <button class="bigbtn ghost" id="rateHome" style="margin-top:10px">‹ Home</button>`;
+  $("rateAgain").onclick=startRate;
+  $("rateHome").onclick=backHome;
+}
+$("rateBack").onclick=backHome;
+
+/* =========================================================
+   best scores
+   ========================================================= */
+function saveBest(mode,val){
+  const b=JSON.parse(localStorage.getItem("nd.best")||"{}");
+  if(mode==="rate"){ b.rate=Math.max(b.rate||0,val); }
+  else { b[mode]=Math.max(b[mode]||0,val); }
+  localStorage.setItem("nd.best",JSON.stringify(b));
+  renderBest();
+}
+function renderBest(){
+  const b=JSON.parse(localStorage.getItem("nd.best")||"{}");
+  const parts=[];
+  if(b.vocab) parts.push(`Vocab ${b.vocab}%`);
+  if(b.comp) parts.push(`Comp ${b.comp}%`);
+  if(b.rate) parts.push(`${b.rate} wpm`);
+  $("bestPill").textContent=parts.length?("Best: "+parts.join(" · ")):"";
+}
+
+document.querySelectorAll(".modeBtn").forEach(b=> b.onclick=()=>startMode(b.dataset.mode));
+renderBest();
+</script>
+</body>
+</html>
