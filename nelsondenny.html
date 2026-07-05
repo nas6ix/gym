@@ -83,6 +83,9 @@
     <button class="modeBtn" data-mode="full">
       <span><b>Full Practice Set</b><small>Vocab + comprehension, scored together</small></span><span class="go">›</span>
     </button>
+    <button class="modeBtn" id="missedBtn" data-mode="missed" style="border-color:var(--warn)">
+      <span><b>📒 My Missed Words</b><small id="missedSub">words you get wrong show up here</small></span><span class="go">›</span>
+    </button>
 
     <div class="card">
       <b style="font-size:15px">Test-day tips</b>
@@ -179,7 +182,42 @@ const VOCAB = [
   ["adequate", ["insufficient","sufficient","loud","fragile","rigid"], 1],
   ["arduous", ["easy","difficult","gentle","hollow","plain"], 1],
   ["candor", ["deceit","honesty","noise","haste","gloom"], 1],
-  ["mitigate", ["worsen","ease","gather","predict","polish"], 1]
+  ["mitigate", ["worsen","ease","gather","predict","polish"], 1],
+  ["acquire", ["obtain","lose","break","delay","hide"], 0],
+  ["brisk", ["slow","quick","gentle","hollow","plain"], 1],
+  ["cease", ["begin","stop","gather","soften","predict"], 1],
+  ["dense", ["thin","thick","calm","brave","brief"], 1],
+  ["endure", ["quit","withstand","gather","polish","delay"], 1],
+  ["feeble", ["strong","weak","loud","rigid","eager"], 1],
+  ["genuine", ["fake","real","noisy","hollow","brief"], 1],
+  ["harsh", ["gentle","severe","joyful","plain","eager"], 1],
+  ["immense", ["tiny","huge","calm","brief","loyal"], 1],
+  ["jovial", ["gloomy","cheerful","strict","hollow","rapid"], 1],
+  ["lofty", ["low","high","calm","plain","brief"], 1],
+  ["menace", ["comfort","threat","gather","polish","delay"], 1],
+  ["nimble", ["clumsy","agile","gloomy","hollow","brief"], 1],
+  ["ominous", ["hopeful","threatening","gentle","plain","rapid"], 1],
+  ["peculiar", ["ordinary","strange","loyal","rapid","harsh"], 1],
+  ["rash", ["cautious","reckless","calm","plain","brief"], 1],
+  ["somber", ["cheerful","gloomy","loud","rigid","eager"], 1],
+  ["timid", ["bold","shy","greedy","rapid","harsh"], 1],
+  ["utmost", ["least","greatest","calm","plain","brief"], 1],
+  ["valiant", ["cowardly","brave","gloomy","hollow","rapid"], 1],
+  ["weary", ["energetic","tired","loyal","rapid","harsh"], 1],
+  ["yield", ["resist","give way","gather","polish","delay"], 1],
+  ["abundant", ["scarce","plentiful","loud","rigid","eager"], 1],
+  ["brittle", ["flexible","easily broken","calm","plain","brief"], 1],
+  ["coax", ["force","gently persuade","gather","polish","delay"], 1],
+  ["dwindle", ["grow","shrink","gather","soften","predict"], 1],
+  ["erratic", ["steady","unpredictable","calm","plain","brief"], 1],
+  ["flourish", ["wither","thrive","loud","rigid","eager"], 1],
+  ["grim", ["cheerful","stern","gentle","plain","rapid"], 1],
+  ["hasty", ["careful","hurried","calm","plain","brief"], 1],
+  ["scoff", ["praise","mock","gather","soften","delay"], 1],
+  ["vast", ["small","enormous","loud","rigid","eager"], 1],
+  ["quell", ["stir up","suppress","gather","polish","predict"], 1],
+  ["deft", ["clumsy","skillful","gloomy","hollow","brief"], 1],
+  ["baffle", ["clarify","confuse","gather","soften","delay"], 1]
 ];
 
 const PASSAGES = [
@@ -242,6 +280,46 @@ The effects were enormous and often unexpected. As printed books multiplied, the
       ["In this passage, 'multiplied' most nearly means",
         ["divided","increased in number","disappeared","were translated"], 1]
     ]
+  },
+  {
+    title: "Why We Sleep",
+    text: `For a long time, sleep looked like wasted time. A sleeping animal cannot hunt, guard its young, or gather food, and it is vulnerable to predators. If sleep were not deeply important, evolution should have erased it. Instead, nearly every animal studied sleeps in some form, which tells scientists that it must serve purposes too valuable to skip.
+
+Research has uncovered several of those purposes. During deep sleep, the brain appears to clear out waste products that build up while we are awake. Sleep also helps lock in memories: skills and facts practiced during the day are strengthened overnight, which is why students who sleep after studying often remember more than those who stay up cramming. The body, meanwhile, repairs tissue and regulates the hormones that control hunger and stress.
+
+The consequences of going without are steep. People who are chronically short on sleep show slower reaction times, weaker judgment, and worse moods, and over years the risks extend to the heart and immune system. Perhaps the most striking finding is how poorly tired people judge their own condition — many insist they are fine while performing as though impaired. Sleep, it turns out, is not the opposite of productivity but one of its quiet foundations.`,
+    questions: [
+      ["The main point of the passage is that sleep",
+        ["is a waste of valuable time","serves essential purposes for brain and body","matters only to students","evolved by mistake"], 1],
+      ["The fact that nearly all animals sleep suggests that sleep",
+        ["is a recent habit","serves purposes too valuable to skip","is unique to humans","protects animals from predators"], 1],
+      ["According to the passage, sleeping after studying tends to",
+        ["waste the study time","improve how much is remembered","cause forgetfulness","replace the need to practice"], 1],
+      ["It can be inferred that a tired person's judgment of their own alertness is",
+        ["usually accurate","often worse than their actual performance","unaffected by fatigue","better than a rested person's"], 1],
+      ["The phrase 'the opposite of productivity' is used to show that sleep is",
+        ["harmful to work","actually a support for productivity","unrelated to work","only for the lazy"], 1]
+    ]
+  },
+  {
+    title: "The Lighthouse",
+    text: `Long before satellites and radio, a ship approaching land at night faced a deadly problem: it was nearly impossible to tell where the safe water ended and the rocks began. Coastlines that looked open in daylight became invisible traps after dark. The answer, refined over centuries, was the lighthouse — a tall tower carrying a light strong enough to be seen far out at sea.
+
+The challenge was never simply making a bright light, but making one that could be recognized and aimed. Early keepers burned wood or coal, then oil lamps, but plain flames scattered their glow in every direction and wasted most of it. The breakthrough came with specially shaped glass lenses that gathered scattered light and bent it into a single powerful beam. By rotating that beam and timing its flashes, engineers gave each lighthouse its own signature, so a captain could identify exactly which point of land lay ahead.
+
+Keeping the light burning demanded lonely, exacting work. Keepers lived for months in isolation, trimming wicks, winding clockwork, and standing watch through storms. Automation has since replaced nearly all of them, and modern navigation relies on instruments a keeper could not have imagined. Yet the lighthouse endures as a symbol precisely because of what it once demanded: steady vigilance offered for the safety of strangers.`,
+    questions: [
+      ["The passage is mainly about",
+        ["the loneliness of sailors","how and why lighthouses developed","the invention of glass","modern satellite navigation"], 1],
+      ["Before lenses were used, plain flames were inefficient because they",
+        ["burned too slowly","scattered light in every direction","could not be lit at night","were too expensive"], 1],
+      ["Each lighthouse could be told apart by",
+        ["its color","the timing and pattern of its flashes","its height","the keeper's name"], 1],
+      ["It can be inferred that lighthouse keepers needed to be",
+        ["wealthy","reliable and dedicated","fast runners","trained sailors"], 1],
+      ["In this passage, 'vigilance' most nearly means",
+        ["carelessness","watchfulness","loneliness","brightness"], 1]
+    ]
   }
 ];
 
@@ -289,12 +367,30 @@ function buildCompItems(passages){
   return items;
 }
 
+function buildMissedItems(){
+  const missed=getMissed();
+  const items=[];
+  for(const w of missed){
+    const found=VOCAB.find(v=>v[0]===w);
+    if(!found) continue;
+    const [word,choices,ans]=found;
+    const order=shuffle(choices.map((c,i)=>({c,i})));
+    items.push({ kind:"vocab", word, choices:order.map(o=>o.c), answer:order.findIndex(o=>o.i===ans), picked:null });
+  }
+  return shuffle(items);
+}
+
 function startMode(mode){
   hide("home");
   if(mode==="rate"){ show("rate"); startRate(); return; }
   let items, seconds, title;
   if(mode==="vocab"){ items=buildVocabItems(20); seconds=8*60; title="Vocabulary"; }
   else if(mode==="comp"){ items=buildCompItems(shuffle(PASSAGES).slice(0,2)); seconds=12*60; title="Comprehension"; }
+  else if(mode==="missed"){
+    items=buildMissedItems();
+    if(!items.length){ alert("Your Missed Words box is empty — get some vocab wrong and they'll collect here for review."); show("home"); return; }
+    seconds=Math.max(120, items.length*20); title="Missed Words";
+  }
   else { items=[...buildVocabItems(15), ...buildCompItems(shuffle(PASSAGES).slice(0,2))]; seconds=18*60; title="Full Set"; }
   quiz={ mode,title,items,idx:0,seconds,left:seconds,timer:null };
   show("quiz");
@@ -361,6 +457,18 @@ function finishQuiz(){
   const correct=quiz.items.filter(it=>it.picked===it.answer).length;
   const pct=Math.round(correct/total*100);
   saveBest(quiz.mode,pct);
+
+  // update the Missed Words box: wrong vocab goes in; mastered ones (right
+  // in the Missed Words quiz) come out.
+  const missed=new Set(getMissed());
+  let learned=0;
+  quiz.items.forEach(it=>{
+    if(it.kind!=="vocab") return;
+    const ok=it.picked===it.answer;
+    if(ok){ if(quiz.mode==="missed" && missed.has(it.word)){ missed.delete(it.word); learned++; } }
+    else missed.add(it.word);
+  });
+  setMissed([...missed]);
   let review=quiz.items.map((it,n)=>{
     const ok=it.picked===it.answer;
     const label=it.kind==="vocab"?it.word:`Q${n+1}`;
@@ -371,12 +479,17 @@ function finishQuiz(){
       ${ok?"":`<div class="ra">✓ Correct: ${it.choices[it.answer]}</div>`}
     </div>`;
   }).join("");
+  const boxLeft=getMissed().length;
+  const masteredLine = quiz.mode==="missed"
+    ? `<div class="result-grade"><span class="pill" style="border-color:var(--good);color:var(--good)">📒 ${learned} mastered · ${boxLeft} left in box</span></div>`
+    : (total && quiz.items.some(it=>it.kind==="vocab") ? `<div class="note">📒 Missed Words box now holds ${boxLeft} word${boxLeft===1?"":"s"} to review.</div>` : "");
   $("results").innerHTML=`
     <div class="card center">
       <div class="qlabel">${quiz.title} — result</div>
       <div class="result-score">${pct}%</div>
       <div class="result-grade">${correct} of ${total} correct</div>
       <div class="result-grade"><span class="pill">${gradeEstimate(pct)}</span></div>
+      ${masteredLine}
       <div class="note">Rough practice estimate only — not an official Nelson-Denny score.</div>
     </div>
     <div class="card"><b>Review</b>${review}</div>
@@ -486,6 +599,17 @@ function renderBest(){
   if(b.comp) parts.push(`Comp ${b.comp}%`);
   if(b.rate) parts.push(`${b.rate} wpm`);
   $("bestPill").textContent=parts.length?("Best: "+parts.join(" · ")):"";
+  renderMissed();
+}
+
+/* Missed Words box */
+function getMissed(){ try{ return JSON.parse(localStorage.getItem("nd.missed")||"[]"); }catch{ return []; } }
+function setMissed(a){ localStorage.setItem("nd.missed", JSON.stringify([...new Set(a)])); }
+function renderMissed(){
+  const n=getMissed().length;
+  const btn=$("missedBtn"), sub=$("missedSub");
+  if(sub) sub.textContent = n ? `${n} word${n===1?"":"s"} to review — tap to quiz them` : "words you get wrong show up here";
+  if(btn) btn.style.opacity = n ? "1" : ".55";
 }
 
 document.querySelectorAll(".modeBtn").forEach(b=> b.onclick=()=>startMode(b.dataset.mode));
