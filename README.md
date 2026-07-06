@@ -1,51 +1,858 @@
-# 🏋️ Gym Coach
 
-A voice-guided workout website that runs entirely in your browser — no app, no account, no server.
 
-Open it on your phone at the gym and it:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1220">
+<title>Nelson-Denny Practice</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#141d2e; --panel2:#1d2942; --line:#2b3a58;
+    --text:#e8eef7; --muted:#93a2bd; --accent:#4d8dff; --good:#33d17a; --bad:#ff6b6b; --warn:#ffb02e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+  .wrap{max-width:640px;margin:0 auto;padding:20px 18px 60px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  header h1{font-size:22px}
+  header h1 span{color:var(--accent)}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
+  .modeBtn{width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:16px 18px;color:var(--text);cursor:pointer;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .modeBtn:active{filter:brightness(1.15)}
+  .modeBtn b{font-size:17px}
+  .modeBtn small{display:block;color:var(--muted);font-weight:400;font-size:13px;margin-top:3px}
+  .modeBtn .go{color:var(--accent);font-size:22px}
+  .bigbtn{width:100%;padding:16px;border:none;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;background:var(--accent);color:#04152e}
+  .bigbtn:disabled{opacity:.4}
+  .ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:14px;color:var(--muted)}
+  .timer{font-variant-numeric:tabular-nums;font-weight:700;color:var(--text);background:var(--panel2);padding:6px 12px;border-radius:999px;border:1px solid var(--line)}
+  .timer.low{color:var(--bad);border-color:var(--bad)}
+  .prog{height:6px;background:var(--panel2);border-radius:3px;overflow:hidden;margin-bottom:16px}
+  .prog>div{height:100%;background:var(--accent);width:0;transition:width .3s}
+  .qword{font-size:26px;font-weight:800;text-align:center;margin:8px 0 4px}
+  .qlabel{color:var(--muted);font-size:13px;text-align:center;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px}
+  .passage{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;font-size:16px;max-height:46vh;overflow:auto}
+  .passage h3{font-size:16px;margin-bottom:8px;color:var(--accent)}
+  .qtext{font-size:17px;font-weight:600;margin-bottom:14px}
+  .choice{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px 15px;color:var(--text);cursor:pointer;margin-bottom:10px;font-size:16px;transition:.12s}
+  .choice:hover{border-color:var(--accent)}
+  .choice.sel{border-color:var(--accent);background:rgba(77,141,255,.14)}
+  .choice.correct{border-color:var(--good);background:rgba(51,209,122,.16)}
+  .choice.wrong{border-color:var(--bad);background:rgba(255,107,107,.16)}
+  .choice .k{display:inline-block;width:22px;color:var(--muted);font-weight:700}
+  .nav{display:flex;gap:10px;margin-top:8px}
+  .nav button{flex:1}
+  .result-score{font-size:56px;font-weight:800;text-align:center;margin:6px 0}
+  .result-grade{text-align:center;font-size:19px;margin-bottom:6px}
+  .pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+  .review-item{border-top:1px solid var(--line);padding:12px 0;font-size:15px}
+  .review-item .rq{font-weight:600;margin-bottom:4px}
+  .review-item .ra{color:var(--good)}
+  .review-item .rx{color:var(--bad)}
+  .note{font-size:12px;color:var(--muted);margin-top:14px}
+  .hidden{display:none}
+  .center{text-align:center}
+  .wpm{font-size:48px;font-weight:800;text-align:center}
+  .statrow{display:flex;gap:10px;margin:14px 0}
+  .stat{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+  .stat b{font-size:22px;display:block}
+  .stat small{color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Nelson<span>·</span>Denny <span>Prep</span></h1>
+    <span class="pill" id="bestPill"></span>
+  </header>
+  <div class="sub">Practice for the reading test — original questions in the real format. Not affiliated with the official test.</div>
 
-- **Knows when you're at the gym** — tap "📍 set gym" once at your gym to save the location. Next time you open the page there, it greets you and offers to start your workout.
-- **Tells you what to do** — a voice coach announces each exercise ("Next up: Squats — 3 sets of 12"), with a quick form tip. It auto-picks the most natural voice on your device (Neural/Natural voices), and you can choose a different one in Coach settings. The lines are varied and hype — no robotic script.
-- **Counts your reps out loud** — pick your pace (2–4 seconds per rep) and it counts every rep (or every 5th, or silently on screen).
-- **Use your own voice** — record yourself saying each coach phrase (numbers, "Go!", "Switch legs!", "Set done — take a break!"…) via 🎙 Record in Coach settings, and the coach speaks in *your* voice. Clips are stored on-device (IndexedDB); anything you skip falls back to the phone voice.
-- **Voice packs** — export all your clips as one `voicepack.json` file and import it on another device, or commit that file to this repo next to `index.html`: the site then auto-loads your voice on every device that opens it (local recordings still take priority).
-- **Tells you when to rest** — automatic rest timers between sets, with a "10 seconds left" heads-up.
-- **Plays music during sets** — four options:
-  - **🟢 My Spotify** — paste any Spotify playlist/album/song link once and it plays through the official Spotify embed. Full songs when you're logged in to Spotify in the browser (previews otherwise). The coach pauses/resumes it around announcements (Spotify's embed has no volume control).
-  - **🦉 Drake mix** — streams a built-in Drake playlist through the official YouTube embed player (needs internet). You can also paste any YouTube song or playlist link instead.
-  - **Your own songs** — pick MP3s from your phone; plays offline.
-  - **Built-in beat** — a generated 128 BPM workout beat, works anywhere.
+  <!-- HOME -->
+  <section id="home">
+    <button class="modeBtn" data-mode="exam" style="border-color:var(--accent);background:linear-gradient(135deg,rgba(77,141,255,.20),var(--panel2))">
+      <span><b>🎯 Full Vocab Test</b><small>80 questions · 15-minute timer · real test format</small></span><span class="go">›</span>
+    </button>
+    <button class="modeBtn" data-mode="vocab">
+      <span><b>Vocabulary</b><small>Pick the closest meaning · timed synonyms</small></span><span class="go">›</span>
+    </button>
+    <button class="modeBtn" data-mode="comp">
+      <span><b>Reading Comprehension</b><small>Two passages · main idea, detail & inference</small></span><span class="go">›</span>
+    </button>
+    <button class="modeBtn" data-mode="fullread" style="border-color:var(--accent);background:linear-gradient(135deg,rgba(77,141,255,.14),var(--panel2))">
+      <span><b>📖 Full Reading Test</b><small>~38 questions · 20-minute timer · full section</small></span><span class="go">›</span>
+    </button>
+    <button class="modeBtn" data-mode="rate">
+      <span><b>Reading Rate</b><small>Measure your words-per-minute & grade level</small></span><span class="go">›</span>
+    </button>
+    <button class="modeBtn" data-mode="full">
+      <span><b>Full Practice Set</b><small>Vocab + comprehension, scored together</small></span><span class="go">›</span>
+    </button>
+    <button class="modeBtn" id="missedBtn" data-mode="missed" style="border-color:var(--warn)">
+      <span><b>📒 My Missed Words</b><small id="missedSub">words you get wrong show up here</small></span><span class="go">›</span>
+    </button>
 
-  For YouTube, own songs, and the beat, the music automatically ducks down whenever the coach speaks, then comes back.
-- **Tells you when to move on** — "Great job, Squats done! Move on to Leg Press."
-- **Remembers your workouts** — recent sessions are saved on your device.
+    <div class="card">
+      <b style="font-size:15px">Test-day tips</b>
+      <ul style="margin:10px 0 0 18px;color:var(--muted);font-size:14px">
+        <li>It's timed — pace yourself, don't stall on one hard item.</li>
+        <li>Skim the questions before reading each passage.</li>
+        <li>Answer everything; a blank scores the same as a wrong guess.</li>
+        <li>Confirm Philly PD's current passing grade level on joinphillypd.com.</li>
+      </ul>
+    </div>
+  </section>
 
-## Built-in programs
+  <!-- QUIZ -->
+  <section id="quiz" class="hidden">
+    <div class="topbar">
+      <button class="ghost" style="border-radius:999px;padding:6px 12px;cursor:pointer" id="quitBtn">✕ quit</button>
+      <span id="qCount"></span>
+      <span class="timer" id="timer">--:--</span>
+    </div>
+    <div class="prog"><div id="progFill"></div></div>
+    <div id="passageWrap"></div>
+    <div id="qBody"></div>
+    <div class="nav">
+      <button class="bigbtn ghost" id="prevBtn">‹ Back</button>
+      <button class="bigbtn" id="nextBtn">Next ›</button>
+    </div>
+  </section>
 
-- **Full Body** — squats, push-ups, lat pulldown, shoulder press, plank
-- **Push Day** — bench, incline press, shoulder press, lateral raises, pushdowns
-- **Pull Day** — pulldown, rows, face pulls, curls
-- **Glute Day** — glute bridge activation, hip thrusts, RDLs, Bulgarian split squats (per-leg with a "switch legs" callout), leg press (high & wide stance), hip abductors, cable kickbacks, calf press
+  <!-- READING RATE -->
+  <section id="rate" class="hidden">
+    <div id="rateIntro">
+      <div class="card">
+        <b style="font-size:16px">Reading Rate test</b>
+        <p style="color:var(--muted);font-size:14px;margin-top:8px">
+          When you tap start, a passage appears and a timer begins. Read at your normal, careful pace —
+          you'll answer 2 quick questions after to prove you understood it. Tap <b>I'm done reading</b> the moment you finish.
+        </p>
+      </div>
+      <button class="bigbtn" id="rateStart">Start reading</button>
+      <button class="bigbtn ghost" id="rateBack" style="margin-top:10px">‹ Home</button>
+    </div>
+    <div id="rateReading" class="hidden">
+      <div class="topbar"><span class="pill">reading…</span><span class="timer" id="rateTimer">0.0s</span></div>
+      <div class="passage" id="ratePassage" style="max-height:60vh"></div>
+      <button class="bigbtn" id="rateDone">I'm done reading</button>
+    </div>
+    <div id="rateQuiz" class="hidden"></div>
+    <div id="rateResult" class="hidden"></div>
+  </section>
 
-Programs live in the `PROGRAMS` object at the top of the script in `index.html` — edit names, sets, reps, and rest times to make them yours.
+  <!-- RESULTS -->
+  <section id="results" class="hidden"></section>
+</div>
 
-## How to use it
+<script>
+"use strict";
 
-It's a single `index.html` file. Easiest way to get it on your phone:
+/* =========================================================
+   ORIGINAL PRACTICE CONTENT (not real test items)
+   ========================================================= */
+const VOCAB = [
+  ["abate", ["lessen","expand","confuse","reserve","polish"], 0],
+  ["candid", ["hidden","frank","clumsy","gentle","brief"], 1],
+  ["deter", ["encourage","delay","discourage","predict","repair"], 2],
+  ["frugal", ["wasteful","thrifty","cheerful","hollow","rapid"], 1],
+  ["hinder", ["assist","obstruct","polish","gather","soften"], 1],
+  ["lucid", ["clear","dizzy","strict","loyal","dull"], 0],
+  ["novice", ["expert","beginner","leader","rival","witness"], 1],
+  ["obscure", ["famous","unclear","eager","costly","rigid"], 1],
+  ["prudent", ["reckless","cautious","noisy","hollow","brief"], 1],
+  ["rigid", ["flexible","stiff","cheap","calm","vague"], 1],
+  ["scarce", ["plentiful","rare","loud","smooth","brave"], 1],
+  ["tedious", ["exciting","tiresome","polite","sudden","fragile"], 1],
+  ["vague", ["precise","unclear","loyal","eager","harsh"], 1],
+  ["wary", ["careless","cautious","joyful","hollow","plain"], 1],
+  ["zealous", ["lazy","enthusiastic","gloomy","gentle","brief"], 1],
+  ["benevolent", ["cruel","kind","dull","rapid","hollow"], 1],
+  ["concise", ["wordy","brief","loud","fragile","rigid"], 1],
+  ["diligent", ["careless","hardworking","timid","hollow","sudden"], 1],
+  ["eloquent", ["clumsy","well-spoken","greedy","plain","harsh"], 1],
+  ["futile", ["useful","useless","gentle","rapid","loyal"], 1],
+  ["gregarious", ["shy","sociable","strict","hollow","brief"], 1],
+  ["hostile", ["friendly","unfriendly","calm","plain","eager"], 1],
+  ["impartial", ["biased","fair","loud","fragile","rigid"], 1],
+  ["meticulous", ["sloppy","careful","timid","hollow","rapid"], 1],
+  ["negligent", ["careful","careless","joyful","strict","brief"], 1],
+  ["obstinate", ["agreeable","stubborn","gentle","hollow","plain"], 1],
+  ["placid", ["stormy","calm","greedy","rapid","harsh"], 1],
+  ["reluctant", ["eager","unwilling","loud","fragile","rigid"], 1],
+  ["surplus", ["shortage","excess","calm","plain","brief"], 1],
+  ["trivial", ["important","unimportant","loyal","rapid","harsh"], 1],
+  ["unanimous", ["divided","in full agreement","noisy","hollow","brief"], 1],
+  ["verify", ["deny","confirm","gather","soften","delay"], 1],
+  ["adequate", ["insufficient","sufficient","loud","fragile","rigid"], 1],
+  ["arduous", ["easy","difficult","gentle","hollow","plain"], 1],
+  ["candor", ["deceit","honesty","noise","haste","gloom"], 1],
+  ["mitigate", ["worsen","ease","gather","predict","polish"], 1],
+  ["acquire", ["obtain","lose","break","delay","hide"], 0],
+  ["brisk", ["slow","quick","gentle","hollow","plain"], 1],
+  ["cease", ["begin","stop","gather","soften","predict"], 1],
+  ["dense", ["thin","thick","calm","brave","brief"], 1],
+  ["endure", ["quit","withstand","gather","polish","delay"], 1],
+  ["feeble", ["strong","weak","loud","rigid","eager"], 1],
+  ["genuine", ["fake","real","noisy","hollow","brief"], 1],
+  ["harsh", ["gentle","severe","joyful","plain","eager"], 1],
+  ["immense", ["tiny","huge","calm","brief","loyal"], 1],
+  ["jovial", ["gloomy","cheerful","strict","hollow","rapid"], 1],
+  ["lofty", ["low","high","calm","plain","brief"], 1],
+  ["menace", ["comfort","threat","gather","polish","delay"], 1],
+  ["nimble", ["clumsy","agile","gloomy","hollow","brief"], 1],
+  ["ominous", ["hopeful","threatening","gentle","plain","rapid"], 1],
+  ["peculiar", ["ordinary","strange","loyal","rapid","harsh"], 1],
+  ["rash", ["cautious","reckless","calm","plain","brief"], 1],
+  ["somber", ["cheerful","gloomy","loud","rigid","eager"], 1],
+  ["timid", ["bold","shy","greedy","rapid","harsh"], 1],
+  ["utmost", ["least","greatest","calm","plain","brief"], 1],
+  ["valiant", ["cowardly","brave","gloomy","hollow","rapid"], 1],
+  ["weary", ["energetic","tired","loyal","rapid","harsh"], 1],
+  ["yield", ["resist","give way","gather","polish","delay"], 1],
+  ["abundant", ["scarce","plentiful","loud","rigid","eager"], 1],
+  ["brittle", ["flexible","easily broken","calm","plain","brief"], 1],
+  ["coax", ["force","gently persuade","gather","polish","delay"], 1],
+  ["dwindle", ["grow","shrink","gather","soften","predict"], 1],
+  ["erratic", ["steady","unpredictable","calm","plain","brief"], 1],
+  ["flourish", ["wither","thrive","loud","rigid","eager"], 1],
+  ["grim", ["cheerful","stern","gentle","plain","rapid"], 1],
+  ["hasty", ["careful","hurried","calm","plain","brief"], 1],
+  ["scoff", ["praise","mock","gather","soften","delay"], 1],
+  ["vast", ["small","enormous","loud","rigid","eager"], 1],
+  ["quell", ["stir up","suppress","gather","polish","predict"], 1],
+  ["deft", ["clumsy","skillful","gloomy","hollow","brief"], 1],
+  ["baffle", ["clarify","confuse","gather","soften","delay"], 1],
+  ["amend", ["worsen","revise","gather","polish","delay"], 1],
+  ["compel", ["allow","force","gather","soften","delay"], 1],
+  ["detest", ["adore","hate","gather","polish","predict"], 1],
+  ["elude", ["confront","escape","gather","soften","delay"], 1],
+  ["fatigue", ["energy","exhaustion","noise","haste","gloom"], 1],
+  ["gaudy", ["plain","flashy","calm","brief","loyal"], 1],
+  ["hamper", ["help","hinder","gather","polish","delay"], 1],
+  ["idle", ["busy","inactive","loud","rigid","eager"], 1],
+  ["jargon", ["plain speech","specialized terms","noise","haste","gloom"], 1],
+  ["kindle", ["extinguish","ignite","gather","soften","delay"], 1],
+  ["latent", ["obvious","hidden","loud","rigid","eager"], 1],
+  ["mundane", ["exciting","ordinary","gloomy","hollow","rapid"], 1],
+  ["notorious", ["unknown","infamous","gentle","plain","rapid"], 1],
+  ["obsolete", ["current","outdated","calm","brief","loyal"], 1],
+  ["ponder", ["ignore","consider","gather","polish","delay"], 1],
+  ["quench", ["ignite","satisfy","gather","soften","predict"], 1],
+  ["resilient", ["fragile","able to recover","loud","rigid","eager"], 1],
+  ["scrutinize", ["glance","examine closely","gather","polish","delay"], 1],
+  ["tranquil", ["chaotic","peaceful","gloomy","hollow","rapid"], 1],
+  ["uphold", ["abandon","support","gather","soften","delay"], 1],
+  ["vigor", ["weakness","energy","noise","haste","gloom"], 1],
+  ["wither", ["bloom","shrivel","gather","polish","predict"], 1],
+  ["yearn", ["dread","long for","gather","soften","delay"], 1],
+  ["zeal", ["indifference","passion","noise","haste","gloom"], 1],
+  ["adhere", ["separate","stick fast","gather","polish","delay"], 1],
+  ["bland", ["spicy","dull in flavor","loud","rigid","eager"], 1],
+  ["comply", ["resist","obey","gather","soften","predict"], 1],
+  ["diminish", ["increase","reduce","gather","polish","delay"], 1],
+  ["exempt", ["obligated","excused","loud","rigid","eager"], 1],
+  ["feign", ["reveal","pretend","gather","soften","delay"], 1],
+  ["haughty", ["humble","arrogant","gloomy","hollow","rapid"], 1],
+  ["inept", ["skilled","incompetent","loud","rigid","eager"], 1],
+  ["jeopardy", ["safety","danger","noise","haste","gloom"], 1],
+  ["lavish", ["stingy","extravagant","calm","brief","loyal"], 1],
+  ["mock", ["respect","ridicule","gather","soften","delay"], 1],
+  ["abstain", ["indulge","refrain","gather","polish","delay"], 1],
+  ["adept", ["clumsy","skilled","gloomy","hollow","brief"], 1],
+  ["bleak", ["cheerful","dreary","loud","rigid","eager"], 1],
+  ["cordial", ["hostile","friendly","calm","brief","loyal"], 1],
+  ["defy", ["obey","resist","gather","soften","predict"], 1],
+  ["elaborate", ["simple","detailed","loud","rigid","eager"], 1],
+  ["fickle", ["steady","changeable","gloomy","hollow","rapid"], 1],
+  ["gauge", ["ignore","measure","gather","polish","delay"], 1],
+  ["hoard", ["give away","stockpile","confuse","polish","delay"], 1],
+  ["impede", ["assist","obstruct","gather","soften","predict"], 1],
+  ["keen", ["dull","sharp","gloomy","hollow","rapid"], 1],
+  ["legible", ["unreadable","readable","loud","rigid","eager"], 1],
+  ["malice", ["kindness","ill will","noise","haste","gloom"], 1],
+  ["novel", ["ordinary","new and original","calm","brief","loyal"], 1],
+  ["omit", ["include","leave out","gather","soften","delay"], 1],
+  ["potent", ["weak","powerful","gloomy","hollow","rapid"], 1],
+  ["quaint", ["modern","charmingly old-fashioned","loud","rigid","eager"], 1],
+  ["rebuke", ["praise","scold","gather","polish","predict"], 1],
+  ["sinister", ["harmless","threatening","calm","brief","loyal"], 1],
+  ["thrifty", ["wasteful","economical","gloomy","hollow","rapid"], 1],
+  ["undermine", ["strengthen","weaken","gather","soften","delay"], 1],
+  ["venture", ["stay safe","dare","noise","haste","gloom"], 1],
+  ["wane", ["grow","decrease","loud","rigid","eager"], 1],
+  ["exemplary", ["poor","outstanding","calm","brief","loyal"], 1],
+  ["zenith", ["lowest point","peak","gather","polish","predict"], 1],
+  ["abrupt", ["gradual","sudden","gloomy","hollow","rapid"], 1],
+  ["bountiful", ["scarce","plentiful","loud","rigid","eager"], 1],
+  ["clarify", ["confuse","make clear","gather","soften","delay"], 1],
+  ["dismal", ["cheerful","gloomy","noise","haste","calm"], 1],
+  ["earnest", ["insincere","sincere","loud","rigid","eager"], 1],
+  ["feasible", ["impossible","doable","gloomy","hollow","rapid"], 1],
+  ["glisten", ["dull","sparkle","gather","polish","delay"], 1],
+  ["humble", ["arrogant","modest","calm","brief","loyal"], 1],
+  ["incentive", ["discouragement","motivation","noise","haste","gloom"], 1],
+  ["lull", ["agitate","soothe","loud","rigid","eager"], 1],
+  ["meager", ["abundant","scanty","gloomy","hollow","rapid"], 1],
+  ["nurture", ["neglect","nourish","gather","soften","delay"], 1],
+  ["optimal", ["worst","best","calm","brief","loyal"], 1],
+  ["prone", ["unlikely","inclined","noise","haste","gloom"], 1],
+  ["quiver", ["steady","tremble","loud","rigid","eager"], 1],
+  ["radiant", ["dull","glowing","gloomy","hollow","rapid"], 1],
+  ["sluggish", ["energetic","slow","gather","polish","delay"], 1],
+  ["tactful", ["rude","diplomatic","calm","brief","loyal"], 1],
+  ["vivid", ["faint","bright and clear","noise","haste","gloom"], 1]
+];
 
-1. **GitHub Pages (recommended):** in this repo go to *Settings → Pages*, set the source to your branch, and GitHub gives you a URL like `https://<user>.github.io/gym/`. Bookmark it on your phone's home screen.
-2. Or open the file directly in any browser.
+const PASSAGES = [
+  {
+    title: "Foot Patrols",
+    text: `For most of the twentieth century, police work in large American cities moved steadily into patrol cars. Radios and automobiles let a small number of officers cover wide areas quickly, and departments came to measure success by how fast a car could reach a call. Yet something was lost in the shift. An officer racing from one emergency to the next rarely learned the names of the shopkeepers, parents, and teenagers on a given block.
 
-> **Note:** the gym-location feature needs HTTPS (GitHub Pages provides it) and location permission. Voice uses your browser's built-in speech — the first "Start workout" tap enables audio.
+Beginning in the 1980s, many departments revived an older idea: the foot patrol. An officer walking a regular beat sees the same faces day after day. Residents grow comfortable sharing small concerns — a broken streetlight, a group of strangers loitering — long before those concerns become emergencies. Studies of foot patrols found that while they did not always reduce the raw number of serious crimes, they consistently made residents feel safer and more willing to cooperate with police.
 
-Everything (gym location, history, settings) is stored in your browser's localStorage — nothing leaves your device.
+That cooperation matters. Detectives solve far more cases when neighbors are willing to talk, and a community that trusts its officers is quicker to report trouble. Foot patrol is slower and covers less ground than a squad car, but its defenders argue that policing was never only about speed. It is also about relationships, and relationships are built one conversation at a time.`,
+    questions: [
+      ["The main idea of the passage is that",
+        ["patrol cars should be eliminated","foot patrols build trust that helps policing","crime rose in the 1980s","radios made officers lazy"], 1],
+      ["According to the passage, patrol cars became popular because they",
+        ["were cheaper than officers","let few officers cover wide areas quickly","reduced all serious crime","were required by law"], 1],
+      ["Studies of foot patrols found that they",
+        ["always cut serious crime sharply","made residents feel safer even when crime numbers held steady","were disliked by residents","replaced all detectives"], 1],
+      ["It can be inferred that the author believes policing",
+        ["is only about response speed","depends partly on community relationships","should avoid technology","is no longer necessary"], 1],
+      ["In this passage, the word 'revived' most nearly means",
+        ["abandoned","brought back","criticized","recorded"], 1]
+    ]
+  },
+  {
+    title: "Bees",
+    text: `A single honeybee may seem insignificant, but the work of a hive ripples across entire landscapes. As bees travel from flower to flower gathering nectar, grains of pollen cling to their bodies and rub off on the next blossom. This accidental transfer, called pollination, allows many plants to produce the fruits and seeds that feed countless other animals — including humans.
 
-## 💌 `foryou.html` — a personal page with your voice
+Roughly a third of the food we eat depends, directly or indirectly, on animal pollinators, and bees do the largest share of that labor. Apples, almonds, blueberries, and squash all yield poorly without them. Farmers know this well; some truck hundreds of hives across the country each spring so that orchards will bear fruit.
 
-A separate little page (`foryou.html`) you can personalize and send to someone special. Open it, tap **✎ Personalize**, and you can:
+In recent decades, beekeepers have reported troubling losses. Colonies sometimes collapse when the adult bees abandon a hive for reasons scientists are still untangling. Pesticides, parasites, disease, and the loss of wildflower habitat all appear to play a part, and they may act together rather than alone. The uncertainty is itself a warning: a food system that leans so heavily on one small insect is more fragile than it looks.`,
+    questions: [
+      ["The passage is mainly about",
+        ["how honey is made","the importance of bees to our food supply","why farmers dislike orchards","how bees build hives"], 1],
+      ["Pollination is described as",
+        ["a deliberate act by farmers","an accidental transfer of pollen by bees","a type of disease","a kind of nectar"], 1],
+      ["According to the passage, about how much of our food depends on animal pollinators?",
+        ["all of it","about a third","almost none","exactly half"], 1],
+      ["The author suggests that colony collapse is",
+        ["fully explained by pesticides alone","probably caused by several factors together","harmless to farming","a recent hoax"], 1],
+      ["The author's tone in the final paragraph is best described as",
+        ["cheerful","concerned","angry","indifferent"], 1]
+    ]
+  },
+  {
+    title: "The Printing Press",
+    text: `Before the middle of the fifteenth century, nearly every book in Europe was copied by hand. A single Bible could take a scribe more than a year to complete, and the cost put books far beyond the reach of ordinary people. Knowledge moved slowly and stayed in the hands of a few.
 
-- **Record your voice** right in the browser — it becomes a "press play, I recorded this for you" button at the top.
-- Edit all the words: their name, the reasons, your letter, an optional Spotify song, and a reply button (e.g. `sms:` or `mailto:`).
-- Tap **⬇ Download my page** to get a single `for-you.html` file with your voice and words **baked inside it** — send that file to them (or upload it to the repo for a link) and they'll hear you on any device. No account, no server; the audio rides along inside the HTML.
+Around 1450, a German craftsman named Johannes Gutenberg combined several existing ideas into one powerful machine. He cast individual letters in metal that could be arranged, inked, pressed onto paper, and then rearranged for the next page. This system of movable type made it possible to produce hundreds of identical copies in the time it once took to make one.
 
-> Recording needs microphone permission, and the "Download my page" step works when the page is opened via its web link (not a file opened directly from disk).
+The effects were enormous and often unexpected. As printed books multiplied, they grew cheaper, and more people learned to read. New ideas — scientific, religious, and political — spread across borders faster than any authority could control them. Rulers who had relied on controlling information found that far harder to do. Gutenberg had set out to sell books, but he had, without quite intending to, helped remake the world.`,
+    questions: [
+      ["The best title for this passage would be",
+        ["The Life of Johannes Gutenberg","How the Printing Press Changed the World","Making Paper in Europe","The History of the Bible"], 1],
+      ["Before the printing press, books were",
+        ["cheap and common","copied slowly by hand","printed with movable type","banned in Europe"], 1],
+      ["Gutenberg's key innovation was",
+        ["inventing paper","movable metal type","teaching people to read","writing the first Bible"], 1],
+      ["It can be inferred that movable type made it harder for rulers to",
+        ["sell books","control the spread of ideas","travel across borders","cast metal letters"], 1],
+      ["In this passage, 'multiplied' most nearly means",
+        ["divided","increased in number","disappeared","were translated"], 1]
+    ]
+  },
+  {
+    title: "Why We Sleep",
+    text: `For a long time, sleep looked like wasted time. A sleeping animal cannot hunt, guard its young, or gather food, and it is vulnerable to predators. If sleep were not deeply important, evolution should have erased it. Instead, nearly every animal studied sleeps in some form, which tells scientists that it must serve purposes too valuable to skip.
+
+Research has uncovered several of those purposes. During deep sleep, the brain appears to clear out waste products that build up while we are awake. Sleep also helps lock in memories: skills and facts practiced during the day are strengthened overnight, which is why students who sleep after studying often remember more than those who stay up cramming. The body, meanwhile, repairs tissue and regulates the hormones that control hunger and stress.
+
+The consequences of going without are steep. People who are chronically short on sleep show slower reaction times, weaker judgment, and worse moods, and over years the risks extend to the heart and immune system. Perhaps the most striking finding is how poorly tired people judge their own condition — many insist they are fine while performing as though impaired. Sleep, it turns out, is not the opposite of productivity but one of its quiet foundations.`,
+    questions: [
+      ["The main point of the passage is that sleep",
+        ["is a waste of valuable time","serves essential purposes for brain and body","matters only to students","evolved by mistake"], 1],
+      ["The fact that nearly all animals sleep suggests that sleep",
+        ["is a recent habit","serves purposes too valuable to skip","is unique to humans","protects animals from predators"], 1],
+      ["According to the passage, sleeping after studying tends to",
+        ["waste the study time","improve how much is remembered","cause forgetfulness","replace the need to practice"], 1],
+      ["It can be inferred that a tired person's judgment of their own alertness is",
+        ["usually accurate","often worse than their actual performance","unaffected by fatigue","better than a rested person's"], 1],
+      ["The phrase 'the opposite of productivity' is used to show that sleep is",
+        ["harmful to work","actually a support for productivity","unrelated to work","only for the lazy"], 1]
+    ]
+  },
+  {
+    title: "The Lighthouse",
+    text: `Long before satellites and radio, a ship approaching land at night faced a deadly problem: it was nearly impossible to tell where the safe water ended and the rocks began. Coastlines that looked open in daylight became invisible traps after dark. The answer, refined over centuries, was the lighthouse — a tall tower carrying a light strong enough to be seen far out at sea.
+
+The challenge was never simply making a bright light, but making one that could be recognized and aimed. Early keepers burned wood or coal, then oil lamps, but plain flames scattered their glow in every direction and wasted most of it. The breakthrough came with specially shaped glass lenses that gathered scattered light and bent it into a single powerful beam. By rotating that beam and timing its flashes, engineers gave each lighthouse its own signature, so a captain could identify exactly which point of land lay ahead.
+
+Keeping the light burning demanded lonely, exacting work. Keepers lived for months in isolation, trimming wicks, winding clockwork, and standing watch through storms. Automation has since replaced nearly all of them, and modern navigation relies on instruments a keeper could not have imagined. Yet the lighthouse endures as a symbol precisely because of what it once demanded: steady vigilance offered for the safety of strangers.`,
+    questions: [
+      ["The passage is mainly about",
+        ["the loneliness of sailors","how and why lighthouses developed","the invention of glass","modern satellite navigation"], 1],
+      ["Before lenses were used, plain flames were inefficient because they",
+        ["burned too slowly","scattered light in every direction","could not be lit at night","were too expensive"], 1],
+      ["Each lighthouse could be told apart by",
+        ["its color","the timing and pattern of its flashes","its height","the keeper's name"], 1],
+      ["It can be inferred that lighthouse keepers needed to be",
+        ["wealthy","reliable and dedicated","fast runners","trained sailors"], 1],
+      ["In this passage, 'vigilance' most nearly means",
+        ["carelessness","watchfulness","loneliness","brightness"], 1]
+    ]
+  },
+  {
+    title: "How Vaccines Work",
+    text: `The immune system is remarkably good at fighting invaders it has met before. The first time a dangerous germ enters the body, the immune system has to learn its shape from scratch, and that delay can let a serious illness take hold. But once the threat is defeated, the body keeps a memory of it. If the same germ returns, the defense is faster and stronger, often stopping the disease before symptoms even appear.
+
+A vaccine takes advantage of this memory without making a person sick. Instead of the live, dangerous germ, a vaccine introduces something harmless that carries the same recognizable markers — a weakened version, a dead fragment, or simply a set of instructions the body can use to build one of those markers itself. The immune system studies this safe preview and files away the memory, so a real infection later meets a defense that is already prepared.
+
+Vaccines also protect people who cannot be vaccinated, such as newborns or those with certain illnesses. When enough of a community is immune, a germ struggles to find new hosts and can no longer spread easily. This indirect shield, sometimes called herd immunity, means that each person's vaccination helps guard neighbors as well as themselves.`,
+    questions: [
+      ["The main idea of the passage is that vaccines",
+        ["cure diseases after they start","train the immune system safely before a real infection","replace the immune system","only protect the person vaccinated"], 1],
+      ["Why is the first encounter with a germ often dangerous?",
+        ["the germ is always deadly","the immune system needs time to learn its shape","vaccines make it worse","the body has no immune system yet"], 1],
+      ["A vaccine is described as introducing something that is",
+        ["a live, dangerous germ","harmless but carries recognizable markers","a cure","a painkiller"], 1],
+      ["Herd immunity protects people who cannot be vaccinated by",
+        ["giving them the germ","making it hard for the germ to find new hosts","curing them directly","weakening their immune systems"], 1],
+      ["In this passage, 'preview' most nearly means",
+        ["a full infection","an advance look","a side effect","a cure"], 1]
+    ]
+  },
+  {
+    title: "The Erie Canal",
+    text: `In the early 1800s, moving goods across the young United States was slow and costly. The Appalachian Mountains stood like a wall between the busy Atlantic coast and the rich farmland of the interior. Hauling a load of wheat overland from the Great Lakes to New York City could cost more than the wheat itself was worth. Many doubted the barrier could ever be crossed cheaply.
+
+The bold answer was a canal — an artificial river, 363 miles long, cut across New York State to link Lake Erie with the Hudson River. Critics mocked the project as an impossible ditch, and it demanded years of grueling labor with hand tools and animal power. When it opened in 1825, however, the effect was immediate. The cost of shipping a ton of goods across the state fell by roughly ninety percent, and travel time dropped from weeks to days.
+
+The consequences reached far beyond trade. New York City, with its new water highway to the interior, grew into the nation's leading port. Towns sprang up along the canal's path, and settlers poured westward using the route in reverse. A single waterway had quietly redrawn the map of American commerce.`,
+    questions: [
+      ["The passage is mainly about",
+        ["the history of New York City","how the Erie Canal transformed trade and settlement","farming in the Great Lakes","building with hand tools"], 1],
+      ["Before the canal, shipping wheat overland was",
+        ["fast and cheap","so expensive it could cost more than the wheat","impossible in winter only","done by railroad"], 1],
+      ["When the canal opened, shipping costs across the state",
+        ["rose sharply","fell by about ninety percent","stayed the same","doubled"], 1],
+      ["It can be inferred that the canal helped New York City because it",
+        ["reduced its population","connected it cheaply to the interior","ended all overland travel","replaced the Hudson River"], 1],
+      ["The critics' phrase 'impossible ditch' shows that they",
+        ["strongly supported the canal","doubted it could succeed","had already built one","wanted a railroad instead"], 1]
+    ]
+  },
+  {
+    title: "Coral Reefs",
+    text: `Coral reefs are often called the rainforests of the sea, and the comparison is apt. Though reefs cover less than one percent of the ocean floor, they shelter roughly a quarter of all marine species at some point in their lives. Fish spawn among their branches, crabs and eels hide in their crevices, and countless smaller creatures graze on the life that coats their surfaces. A healthy reef is one of the most crowded neighborhoods on Earth.
+
+What makes this abundance stranger still is the water in which reefs thrive. Tropical seas are famously clear and blue precisely because they are poor in the floating nutrients that feed life elsewhere. A reef, then, is an island of plenty in a watery desert. Its secret lies in a partnership. The coral animal, a tiny relative of the jellyfish, hosts even tinier algae inside its tissues. The algae capture sunlight and share the food they make; in return, the coral offers shelter and raw materials. Together they build the vast limestone structures that give the reef its shape.
+
+That partnership, however, is fragile. When the surrounding water grows too warm, the coral expels its algae and turns a ghostly white, an event known as bleaching. A bleached coral is not yet dead, but it is starving, and if the heat persists it will not recover. As ocean temperatures climb, mass bleaching events that were once rare have become alarmingly frequent. Scientists warn that reefs which took thousands of years to grow could be lost within a single human lifetime.
+
+The stakes extend well beyond the water. Reefs buffer coastlines from storm waves, support fisheries that feed hundreds of millions of people, and draw tourists whose spending sustains whole economies. To lose them would be to lose not only a marvel of nature but a quiet source of security for much of humanity.`,
+    questions: [
+      ["The main idea of the passage is that coral reefs are",
+        ["easy to replace","biologically rich but increasingly threatened","found in every ocean","made entirely of algae"], 1],
+      ["The comparison of reefs to rainforests is used mainly to emphasize their",
+        ["height","great variety of life","warm temperature","bright color"], 1],
+      ["According to the passage, tropical seas are clear and blue because they",
+        ["contain few floating nutrients","are very deep","have no coral","are extremely cold"], 1],
+      ["The relationship between coral and algae is best described as",
+        ["one that harms the coral","a mutual partnership that benefits both","competition for sunlight","temporary and rare"], 1],
+      ["It can be inferred that a bleached coral",
+        ["has already died","is under stress and may die if heat continues","has too many algae","is perfectly healthy"], 1],
+      ["The author's purpose in the final paragraph is to",
+        ["describe how reefs are built","explain why reefs matter to people","argue that reefs are worthless","list types of fish"], 1],
+      ["In this passage, 'buffer' most nearly means",
+        ["destroy","protect","flood","warm"], 1]
+    ]
+  },
+  {
+    title: "The Origins of Money",
+    text: `For much of history, people managed without money, exchanging goods directly in what we call barter. A farmer with surplus grain might trade it to a potter for bowls. Simple as it sounds, barter carries a stubborn flaw that economists call the double coincidence of wants: the farmer must find not just anyone with bowls, but a potter who happens to want grain at that very moment. When wants fail to match, no trade can happen, and useful goods sit idle.
+
+Money solves this problem by acting as a good that everyone is willing to accept. The farmer can sell grain to whoever needs it, receive money, and later spend that money on bowls, tools, or anything else. Money serves three related roles: a medium of exchange that all parties accept, a unit of account that lets prices be compared, and a store of value that holds worth over time so wealth can be saved.
+
+The forms money has taken are surprisingly varied. Societies have used cattle, salt, shells, and beads as currency, and later turned to metals such as silver and gold, which are durable, divisible, and hard to counterfeit. Eventually rulers stamped metal into coins of guaranteed weight, and much later, paper notes came to stand in for stored metal. Today most money exists only as numbers in electronic accounts, backed not by metal but by public trust and the authority of governments.
+
+That last point reveals something essential. Money has value only because a community agrees that it does. A coin is a promise as much as an object, and the entire system rests on the confidence that others will honor the same promise tomorrow. When that confidence collapses, as it has during episodes of runaway inflation, money can become as worthless as the paper it is printed on.`,
+    questions: [
+      ["The passage is primarily concerned with",
+        ["how coins are minted","why money developed and what it does","the history of farming","how to prevent counterfeiting"], 1],
+      ["The 'double coincidence of wants' refers to the problem that",
+        ["prices are hard to compare","both traders must want what the other offers","money loses value","goods spoil quickly"], 1],
+      ["According to the passage, which is NOT listed as a role of money?",
+        ["medium of exchange","unit of account","store of value","source of raw materials"], 3],
+      ["Metals like gold and silver became popular as money partly because they are",
+        ["easy to eat","durable and hard to counterfeit","brightly colored","found everywhere"], 1],
+      ["The author suggests that modern electronic money is backed mainly by",
+        ["stored gold","public trust and government authority","cattle and salt","printed paper"], 1],
+      ["The statement that 'a coin is a promise as much as an object' mainly conveys that money's value depends on",
+        ["its metal content","shared confidence among people","the ruler's portrait","its weight"], 1],
+      ["The author's tone throughout the passage is best described as",
+        ["explanatory","angry","sorrowful","sarcastic"], 0]
+    ]
+  },
+  {
+    title: "The Circulatory System",
+    text: `The human body contains roughly sixty thousand miles of blood vessels, a network long enough to circle the Earth more than twice. Through this vast plumbing, the heart pushes blood on an endless loop, delivering oxygen and nutrients to every living cell and carrying away the waste those cells produce. A cell more than a fraction of a millimeter from a vessel would starve; the circulatory system is what allows a body of trillions of cells to function as one.
+
+At the center of the system sits the heart, a muscular pump no larger than a fist. It is really two pumps working side by side. The right side receives blood returning from the body, dark and depleted of oxygen, and sends it to the lungs. There the blood releases carbon dioxide and takes on a fresh supply of oxygen before returning to the left side, which drives it back out to the body with enough force to reach the fingertips and toes. This double circuit repeats about once every minute, day and night, for a lifetime.
+
+The vessels themselves are not identical. Arteries, which carry blood away from the heart under high pressure, have thick, elastic walls that stretch and recoil with each beat. Veins, returning blood at lower pressure, are thinner and rely partly on the squeeze of surrounding muscles, aided by small valves that keep blood from flowing backward. Between them lie the capillaries, vessels so narrow that blood cells pass through in single file, and so thin-walled that oxygen and nutrients can slip directly across into the tissues.
+
+For all its complexity, the system is easily taken for granted. It works silently until something goes wrong — a blocked artery, a weakened valve — and only then do we notice the quiet labor that had been sustaining us all along.`,
+    questions: [
+      ["The main idea of the passage is that the circulatory system",
+        ["is too complex to understand","continuously supplies cells and removes waste","is located only in the heart","rarely fails"], 1],
+      ["The comparison to circling the Earth is used to convey the vessels'",
+        ["great total length","bright red color","high pressure","thickness"], 0],
+      ["According to the passage, the right side of the heart sends blood to the",
+        ["fingertips","lungs","brain","stomach"], 1],
+      ["Arteries differ from veins in that arteries",
+        ["carry blood at higher pressure with thicker walls","have valves and thin walls","return blood to the heart","are narrower than capillaries"], 0],
+      ["Capillaries are described as ideal for exchange because they are",
+        ["very long","extremely thin-walled and narrow","under high pressure","surrounded by muscle"], 1],
+      ["It can be inferred from the last paragraph that the author finds the system",
+        ["overrated","quietly remarkable","poorly designed","dangerous"], 1],
+      ["In this passage, 'depleted' most nearly means",
+        ["enriched","emptied","thickened","warmed"], 1]
+    ]
+  },
+  {
+    title: "Public Libraries",
+    text: `For most of recorded history, reading was a privilege of the wealthy. Books were scarce and expensive, and the great collections of the past — from ancient Alexandria to the libraries of medieval monasteries — were closed to ordinary people. To read widely, one generally had to be born into money or the church. Knowledge, like land, tended to stay in the hands of those who already had it.
+
+The idea that a community should provide books to anyone, free of charge, is surprisingly modern. It gathered force in the nineteenth century, as industrial cities swelled with workers and reformers argued that a self-governing people needed to be an educated one. If citizens were to vote, serve on juries, and better their own circumstances, the reasoning went, they required access to information that few could afford to buy. Tax-supported public libraries, open to rich and poor alike, were the practical answer.
+
+The effects were profound and often personal. Countless people who could never have assembled a private library taught themselves history, science, and literature within public reading rooms. Inventors studied technical manuals; immigrants learned the language and laws of their new countries; children discovered worlds far beyond their neighborhoods. The library asked nothing in return but the promise to bring the books back.
+
+Today the mission has widened. Modern libraries lend not only books but audio recordings, films, and digital files; they offer internet access to those without it, host classes, and serve as gathering places safe from the pressures of commerce. Critics occasionally ask whether such institutions are still necessary in an age of cheap information. Their defenders reply that access is not the same as equality, and that a place where anyone may learn, regardless of means, remains as valuable as it ever was.`,
+    questions: [
+      ["The passage is mainly about",
+        ["the destruction of ancient libraries","the rise and value of free public libraries","how to write a book","the cost of printing"], 1],
+      ["For most of history, reading was mainly limited to",
+        ["children","the wealthy and the church","factory workers","government officials"], 1],
+      ["According to the passage, public libraries gained support in the 1800s partly because reformers believed",
+        ["books had become worthless","a self-governing people needed to be educated","reading was dangerous","only the rich should vote"], 1],
+      ["The statement that the library 'asked nothing in return but the promise to bring the books back' emphasizes its",
+        ["strict rules","openness and generosity","high cost","small size"], 1],
+      ["It can be inferred that the author would most likely agree that",
+        ["libraries are now obsolete","free access to knowledge still matters","only printed books count","libraries should charge fees"], 1],
+      ["The author responds to critics by arguing that",
+        ["information is already free","access is not the same as equality","libraries should close","books are outdated"], 1],
+      ["In this passage, 'profound' most nearly means",
+        ["shallow","deep and far-reaching","brief","confusing"], 1]
+    ]
+  }
+];
+
+/* =========================================================
+   helpers
+   ========================================================= */
+const $ = id => document.getElementById(id);
+const show = id => $(id).classList.remove("hidden");
+const hide = id => $(id).classList.add("hidden");
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
+function wordCount(t){ return t.trim().split(/\s+/).length; }
+const KEYS = ["A","B","C","D","E"];
+
+function gradeEstimate(pct){
+  if(pct>=88) return "≈ college level";
+  if(pct>=78) return "≈ 12th grade";
+  if(pct>=68) return "≈ 11th grade";
+  if(pct>=56) return "≈ 10th grade";
+  if(pct>=44) return "≈ 9th grade";
+  return "below 9th grade — keep practicing";
+}
+
+/* =========================================================
+   QUIZ ENGINE (vocab / comprehension / full)
+   ========================================================= */
+let quiz = null;
+
+function buildVocabItems(n){
+  return shuffle(VOCAB).slice(0,n).map(([word,choices,ans])=>{
+    const order = shuffle(choices.map((c,i)=>({c,i})));
+    return { kind:"vocab", word, choices:order.map(o=>o.c), answer:order.findIndex(o=>o.i===ans), picked:null };
+  });
+}
+function buildCompItems(passages){
+  const items=[];
+  for(const p of passages){
+    p.questions.forEach((q,qi)=>{
+      const [text,choices,ans]=q;
+      const order=shuffle(choices.map((c,i)=>({c,i})));
+      items.push({ kind:"comp", passageTitle:p.title, passageText:p.text,
+        showPassage: qi===0, qtext:text, choices:order.map(o=>o.c),
+        answer:order.findIndex(o=>o.i===ans), picked:null });
+    });
+  }
+  return items;
+}
+
+function buildMissedItems(){
+  const missed=getMissed();
+  const items=[];
+  for(const w of missed){
+    const found=VOCAB.find(v=>v[0]===w);
+    if(!found) continue;
+    const [word,choices,ans]=found;
+    const order=shuffle(choices.map((c,i)=>({c,i})));
+    items.push({ kind:"vocab", word, choices:order.map(o=>o.c), answer:order.findIndex(o=>o.i===ans), picked:null });
+  }
+  return shuffle(items);
+}
+
+function startMode(mode){
+  hide("home");
+  if(mode==="rate"){ show("rate"); startRate(); return; }
+  let items, seconds, title;
+  if(mode==="vocab"){ items=buildVocabItems(20); seconds=8*60; title="Vocabulary"; }
+  else if(mode==="exam"){ items=buildVocabItems(80); seconds=15*60; title="Full Vocab Test"; }
+  else if(mode==="comp"){ items=buildCompItems(shuffle(PASSAGES).slice(0,2)); seconds=12*60; title="Comprehension"; }
+  else if(mode==="fullread"){
+    const ps=shuffle(PASSAGES), chosen=[]; let q=0;
+    for(const p of ps){ chosen.push(p); q+=p.questions.length; if(q>=38) break; }
+    items=buildCompItems(chosen); seconds=20*60; title="Full Reading Test";
+  }
+  else if(mode==="missed"){
+    items=buildMissedItems();
+    if(!items.length){ alert("Your Missed Words box is empty — get some vocab wrong and they'll collect here for review."); show("home"); return; }
+    seconds=Math.max(120, items.length*20); title="Missed Words";
+  }
+  else { items=[...buildVocabItems(15), ...buildCompItems(shuffle(PASSAGES).slice(0,2))]; seconds=18*60; title="Full Set"; }
+  quiz={ mode,title,items,idx:0,seconds,left:seconds,timer:null };
+  show("quiz");
+  tickStart();
+  renderQ();
+}
+
+function tickStart(){
+  updateTimer();
+  quiz.timer=setInterval(()=>{
+    quiz.left--;
+    updateTimer();
+    if(quiz.left<=0){ clearInterval(quiz.timer); finishQuiz(); }
+  },1000);
+}
+function updateTimer(){
+  const m=Math.floor(quiz.left/60), s=quiz.left%60;
+  const el=$("timer");
+  el.textContent=`${m}:${String(s).padStart(2,"0")}`;
+  el.classList.toggle("low", quiz.left<=30);
+}
+
+function renderQ(){
+  const it=quiz.items[quiz.idx];
+  $("qCount").textContent=`${quiz.idx+1} / ${quiz.items.length}`;
+  $("progFill").style.width=((quiz.idx)/quiz.items.length*100)+"%";
+  // passage
+  const pw=$("passageWrap");
+  if(it.kind==="comp" && it.showPassage){
+    pw.innerHTML=`<div class="passage"><h3>${it.passageTitle}</h3>${it.passageText.split("\n\n").map(p=>`<p style="margin-bottom:10px">${p}</p>`).join("")}</div>`;
+  } else if(it.kind==="comp"){
+    pw.innerHTML=`<div class="note">↑ Refer to the passage “${it.passageTitle}” above.</div>`;
+  } else pw.innerHTML="";
+  // body
+  let html="";
+  if(it.kind==="vocab"){
+    html+=`<div class="qlabel">Choose the closest meaning</div><div class="qword">${it.word}</div>`;
+  } else {
+    html+=`<div class="qtext">${it.qtext}</div>`;
+  }
+  it.choices.forEach((c,i)=>{
+    const sel=it.picked===i?"sel":"";
+    html+=`<button class="choice ${sel}" data-i="${i}"><span class="k">${KEYS[i]}</span>${c}</button>`;
+  });
+  $("qBody").innerHTML=html;
+  $("qBody").querySelectorAll(".choice").forEach(b=>{
+    b.onclick=()=>{ it.picked=+b.dataset.i; renderQ(); };
+  });
+  $("prevBtn").disabled=quiz.idx===0;
+  $("nextBtn").textContent=quiz.idx===quiz.items.length-1?"Finish ✓":"Next ›";
+}
+
+$("nextBtn").onclick=()=>{
+  if(quiz.idx===quiz.items.length-1) finishQuiz();
+  else { quiz.idx++; renderQ(); window.scrollTo({top:0,behavior:"smooth"}); }
+};
+$("prevBtn").onclick=()=>{ if(quiz.idx>0){ quiz.idx--; renderQ(); window.scrollTo({top:0,behavior:"smooth"}); } };
+$("quitBtn").onclick=()=>{ if(confirm("Quit this practice set?")){ clearInterval(quiz.timer); backHome(); } };
+
+function finishQuiz(){
+  clearInterval(quiz.timer);
+  hide("quiz");
+  const total=quiz.items.length;
+  const correct=quiz.items.filter(it=>it.picked===it.answer).length;
+  const pct=Math.round(correct/total*100);
+  saveBest(quiz.mode,pct);
+
+  // update the Missed Words box: wrong vocab goes in; mastered ones (right
+  // in the Missed Words quiz) come out.
+  const missed=new Set(getMissed());
+  let learned=0;
+  quiz.items.forEach(it=>{
+    if(it.kind!=="vocab") return;
+    const ok=it.picked===it.answer;
+    if(ok){ if(quiz.mode==="missed" && missed.has(it.word)){ missed.delete(it.word); learned++; } }
+    else missed.add(it.word);
+  });
+  setMissed([...missed]);
+  let review=quiz.items.map((it,n)=>{
+    const ok=it.picked===it.answer;
+    const label=it.kind==="vocab"?it.word:`Q${n+1}`;
+    const your=it.picked==null?"—":it.choices[it.picked];
+    return `<div class="review-item">
+      <div class="rq">${label}${it.kind==="comp"?": "+it.qtext:""}</div>
+      <div class="${ok?'ra':'rx'}">${ok?"✓":"✗"} Your answer: ${your}</div>
+      ${ok?"":`<div class="ra">✓ Correct: ${it.choices[it.answer]}</div>`}
+    </div>`;
+  }).join("");
+  const boxLeft=getMissed().length;
+  const masteredLine = quiz.mode==="missed"
+    ? `<div class="result-grade"><span class="pill" style="border-color:var(--good);color:var(--good)">📒 ${learned} mastered · ${boxLeft} left in box</span></div>`
+    : (total && quiz.items.some(it=>it.kind==="vocab") ? `<div class="note">📒 Missed Words box now holds ${boxLeft} word${boxLeft===1?"":"s"} to review.</div>` : "");
+  $("results").innerHTML=`
+    <div class="card center">
+      <div class="qlabel">${quiz.title} — result</div>
+      <div class="result-score">${pct}%</div>
+      <div class="result-grade">${correct} of ${total} correct</div>
+      <div class="result-grade"><span class="pill">${gradeEstimate(pct)}</span></div>
+      ${masteredLine}
+      <div class="note">Rough practice estimate only — not an official Nelson-Denny score.</div>
+    </div>
+    <div class="card"><b>Review</b>${review}</div>
+    <button class="bigbtn" id="againBtn">Practice again</button>
+    <button class="bigbtn ghost" id="homeBtn" style="margin-top:10px">‹ Home</button>`;
+  show("results");
+  $("againBtn").onclick=()=>{ hide("results"); startMode(quiz.mode); };
+  $("homeBtn").onclick=backHome;
+  window.scrollTo({top:0});
+}
+
+function backHome(){
+  ["quiz","results","rate"].forEach(hide);
+  show("home");
+  renderBest();
+  window.scrollTo({top:0});
+}
+
+/* =========================================================
+   READING RATE
+   ========================================================= */
+let rate=null;
+function startRate(){
+  ["rateReading","rateQuiz","rateResult"].forEach(hide);
+  show("rateIntro");
+}
+$("rateStart").onclick=()=>{
+  const p=PASSAGES[(Math.random()*PASSAGES.length)|0];
+  rate={ passage:p, words:wordCount(p.text), t0:performance.now(), timer:null };
+  hide("rateIntro"); show("rateReading");
+  $("ratePassage").innerHTML=`<h3>${p.title}</h3>`+p.text.split("\n\n").map(x=>`<p style="margin-bottom:10px">${x}</p>`).join("");
+  $("ratePassage").scrollTop=0;
+  rate.timer=setInterval(()=>{
+    $("rateTimer").textContent=((performance.now()-rate.t0)/1000).toFixed(1)+"s";
+  },100);
+};
+$("rateDone").onclick=()=>{
+  clearInterval(rate.timer);
+  rate.secs=(performance.now()-rate.t0)/1000;
+  rate.wpm=Math.round(rate.words/(rate.secs/60));
+  hide("rateReading");
+  // 2 comprehension checks from that passage
+  rate.checks=shuffle(rate.passage.questions).slice(0,2).map(q=>{
+    const [text,choices,ans]=q;
+    const order=shuffle(choices.map((c,i)=>({c,i})));
+    return { qtext:text, choices:order.map(o=>o.c), answer:order.findIndex(o=>o.i===ans), picked:null };
+  });
+  renderRateQuiz();
+};
+function renderRateQuiz(){
+  show("rateQuiz");
+  $("rateQuiz").innerHTML=`<div class="card"><b>Quick check</b><div class="note">Answer to confirm you read it.</div></div>`+
+    rate.checks.map((c,ci)=>`<div class="card"><div class="qtext">${c.qtext}</div>${
+      c.choices.map((ch,i)=>`<button class="choice" data-c="${ci}" data-i="${i}"><span class="k">${KEYS[i]}</span>${ch}</button>`).join("")
+    }</div>`).join("")+`<button class="bigbtn" id="rateFinish">See my result</button>`;
+  $("rateQuiz").querySelectorAll(".choice").forEach(b=>{
+    b.onclick=()=>{ const ci=+b.dataset.c; rate.checks[ci].picked=+b.dataset.i;
+      $("rateQuiz").querySelectorAll(`[data-c="${ci}"]`).forEach(x=>x.classList.remove("sel"));
+      b.classList.add("sel"); };
+  });
+  $("rateFinish").onclick=showRateResult;
+}
+function showRateResult(){
+  hide("rateQuiz"); show("rateResult");
+  const got=rate.checks.filter(c=>c.picked===c.answer).length;
+  let interp;
+  if(rate.wpm<150) interp="below average — practice reading in steady lines without re-reading";
+  else if(rate.wpm<250) interp="average adult range";
+  else if(rate.wpm<350) interp="good, above average";
+  else interp="very fast — just keep comprehension high";
+  const comprehendNote = got<2 ? " Slow down slightly; speed only counts if you understand it." : " Nice — you kept comprehension while reading.";
+  saveBest("rate", rate.wpm);
+  $("rateResult").innerHTML=`
+    <div class="card center">
+      <div class="qlabel">Your reading rate</div>
+      <div class="wpm">${rate.wpm}</div>
+      <div class="result-grade">words per minute</div>
+      <div class="statrow">
+        <div class="stat"><b>${rate.secs.toFixed(1)}s</b><small>time</small></div>
+        <div class="stat"><b>${rate.words}</b><small>words</small></div>
+        <div class="stat"><b>${got}/2</b><small>comprehension</small></div>
+      </div>
+      <div class="result-grade"><span class="pill">${interp}</span></div>
+      <div class="note">The average adult reads ~250 wpm. Comprehension matters more than raw speed.${comprehendNote}</div>
+    </div>
+    <button class="bigbtn" id="rateAgain">Try again</button>
+    <button class="bigbtn ghost" id="rateHome" style="margin-top:10px">‹ Home</button>`;
+  $("rateAgain").onclick=startRate;
+  $("rateHome").onclick=backHome;
+}
+$("rateBack").onclick=backHome;
+
+/* =========================================================
+   best scores
+   ========================================================= */
+function saveBest(mode,val){
+  const b=JSON.parse(localStorage.getItem("nd.best")||"{}");
+  if(mode==="rate"){ b.rate=Math.max(b.rate||0,val); }
+  else { b[mode]=Math.max(b[mode]||0,val); }
+  localStorage.setItem("nd.best",JSON.stringify(b));
+  renderBest();
+}
+function renderBest(){
+  const b=JSON.parse(localStorage.getItem("nd.best")||"{}");
+  const parts=[];
+  if(b.exam) parts.push(`Test ${b.exam}%`);
+  if(b.vocab) parts.push(`Vocab ${b.vocab}%`);
+  if(b.fullread) parts.push(`Read ${b.fullread}%`);
+  if(b.comp) parts.push(`Comp ${b.comp}%`);
+  if(b.rate) parts.push(`${b.rate} wpm`);
+  $("bestPill").textContent=parts.length?("Best: "+parts.join(" · ")):"";
+  renderMissed();
+}
+
+/* Missed Words box */
+function getMissed(){ try{ return JSON.parse(localStorage.getItem("nd.missed")||"[]"); }catch{ return []; } }
+function setMissed(a){ localStorage.setItem("nd.missed", JSON.stringify([...new Set(a)])); }
+function renderMissed(){
+  const n=getMissed().length;
+  const btn=$("missedBtn"), sub=$("missedSub");
+  if(sub) sub.textContent = n ? `${n} word${n===1?"":"s"} to review — tap to quiz them` : "words you get wrong show up here";
+  if(btn) btn.style.opacity = n ? "1" : ".55";
+}
+
+document.querySelectorAll(".modeBtn").forEach(b=> b.onclick=()=>startMode(b.dataset.mode));
+renderBest();
+</script>
+</body>
+</html>
