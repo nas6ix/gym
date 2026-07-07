@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1220">
+<title>Philly PD Vocabulary Tutor</title>
+<style>
+  :root{
+    --bg:#0b1220;--panel:#141d2e;--panel2:#1d2942;--line:#2b3a58;
+    --text:#e8eef7;--muted:#93a2bd;--accent:#4d8dff;--good:#33d17a;--bad:#ff6b6b;--warn:#ffb02e;--gold:#ffd257;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.55}
+  .wrap{max-width:660px;margin:0 auto;padding:16px 16px 60px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  header h1{font-size:19px}
+  header h1 span{color:var(--accent)}
+  .scorebar{display:flex;gap:8px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+  .chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:5px 11px}
+  .chip b{color:var(--text)}
+  .chip.rank{border-color:var(--gold);color:var(--gold)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
+  .qnum{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+  .qnum .cat{color:var(--accent)}
+  .word{font-size:32px;font-weight:800;letter-spacing:1px;margin:2px 0 4px}
+  .prompt{color:var(--muted);font-size:14px;margin-bottom:14px}
+  .choice{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px 15px;color:var(--text);cursor:pointer;margin-bottom:10px;font-size:16px;transition:.12s}
+  .choice:hover{border-color:var(--accent)}
+  .choice .k{display:inline-block;width:24px;color:var(--muted);font-weight:700}
+  .choice.correct{border-color:var(--good);background:rgba(51,209,122,.15)}
+  .choice.wrong{border-color:var(--bad);background:rgba(255,107,107,.15)}
+  .choice[disabled]{cursor:default}
+  .verdict{font-size:18px;font-weight:800;margin:4px 0 12px}
+  .verdict.ok{color:var(--good)}
+  .verdict.no{color:var(--bad)}
+  .fb h4{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin:14px 0 5px}
+  .fb p{font-size:15px}
+  .fb .why{font-size:14px;margin:4px 0;color:var(--muted)}
+  .fb .why b{color:var(--text)}
+  .sent{background:var(--panel2);border-left:3px solid var(--accent);border-radius:8px;padding:8px 12px;margin:6px 0;font-size:14px}
+  .sent .tag{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+  .pillrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .pill{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:13px}
+  .pill.syn{border-color:var(--good);color:var(--good)}
+  .pill.ant{border-color:var(--bad);color:var(--bad)}
+  .mnem{background:rgba(255,210,87,.10);border:1px solid var(--gold);border-radius:10px;padding:10px 13px;font-size:14px;margin-top:8px}
+  .bigbtn{width:100%;padding:15px;border:none;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;background:var(--accent);color:#04152e}
+  .bigbtn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+  .bigbtn:disabled{opacity:.4}
+  .row{display:flex;gap:10px}
+  .row .bigbtn{flex:1}
+  .hidden{display:none}
+  .center{text-align:center}
+  .checkpoint .big{font-size:46px;font-weight:800}
+  .weak{background:var(--panel2);border-radius:10px;padding:10px 13px;margin:8px 0;font-size:14px}
+  .bar{height:8px;border-radius:4px;background:var(--panel2);overflow:hidden;margin-top:4px}
+  .bar>div{height:100%;background:var(--accent)}
+  ul.study{list-style:none;font-size:14px}
+  ul.study li{padding:8px 0;border-top:1px solid var(--line)}
+  ul.study li b{color:var(--accent)}
+  .intro p{color:var(--muted);font-size:14px;margin:8px 0}
+  .note{color:var(--muted);font-size:12px;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Philly PD <span>Vocab Tutor</span></h1>
+    <div class="scorebar" id="scorebar"></div>
+  </header>
+
+  <!-- INTRO -->
+  <section id="intro" class="card intro">
+    <h2 style="font-size:18px;margin-bottom:4px">Nelson-Denny / Civil Service vocabulary trainer</h2>
+    <p>Exam-level words from police reports, criminal justice, court opinions, government documents, news, public safety, and academic reading. Distractors are deliberately close — read all four.</p>
+    <p>After every answer you get: the plain-English definition, why each choice is right or wrong, a police-report sentence and an everyday sentence, two synonyms + one antonym, and a memory trick.</p>
+    <p>Every 25 questions: your score, weakest areas, and a review round built only from words you missed. Keep going until you're consistently at <b>90%+</b> (“Competitive”).</p>
+    <button class="bigbtn" id="startBtn">Start training</button>
+    <div class="note">All questions are original and written for practice — not copied from any real exam.</div>
+  </section>
+
+  <!-- QUESTION -->
+  <section id="qcard" class="card hidden">
+    <div class="qnum" id="qnum"></div>
+    <div class="word" id="word"></div>
+    <div class="prompt">Choose the word or phrase closest in meaning:</div>
+    <div id="choices"></div>
+    <div id="feedback" class="fb hidden"></div>
+    <div id="afterBtns" class="hidden" style="margin-top:14px"></div>
+  </section>
+
+  <!-- CHECKPOINT -->
+  <section id="checkpoint" class="card checkpoint hidden"></section>
+
+  <!-- REPORT -->
+  <section id="report" class="hidden"></section>
+</div>
+
+<script>
+"use strict";
+
+/* =====================================================================
+   ORIGINAL WORD BANK  (exam-level; all original)
+   Each: w=word, cat=category, def=plain definition,
+   choices=[{t,ok?,why}], police=report sentence, life=everyday sentence,
+   syn=[two], ant=one, mnem=memory trick.
+===================================================================== */
+const WORDS = [
+ { w:"culpable", cat:"Court", def:"Deserving blame; responsible for a fault or wrong.",
+   choices:[
+     {t:"deserving of blame", ok:true, why:"a culpable person is at fault or to blame."},
+     {t:"innocent of any wrongdoing", why:"this is the opposite of culpable."},
+     {t:"difficult to prove in court", why:"culpability is about blame, not how hard something is to prove."},
+     {t:"acting in lawful self-defense", why:"self-defense implies justification — the opposite of being at fault."}],
+   police:"Investigators found the driver culpable for the collision after he ran the red light.",
+   life:"She felt culpable for forgetting to lock the front door.",
+   syn:["blameworthy","guilty"], ant:"blameless",
+   mnem:"CULPable = CULPrit — the culprit is the one who's culpable." },
+
+ { w:"corroborate", cat:"Criminal justice", def:"To support or confirm a statement with evidence.",
+   choices:[
+     {t:"to confirm with supporting evidence", ok:true, why:"to corroborate is to back up a claim with proof."},
+     {t:"to contradict with proof", why:"that's the opposite — corroborating agrees, it doesn't oppose."},
+     {t:"to question a witness closely", why:"that's interrogation, not confirmation."},
+     {t:"to record an account in writing", why:"writing something down isn't the same as confirming it's true."}],
+   police:"A second witness corroborated the victim's account of the assault.",
+   life:"Receipts corroborated his story about where he had been all afternoon.",
+   syn:["confirm","substantiate"], ant:"contradict",
+   mnem:"Co-ROB-orate: two people who both saw the ROBbery agree — they corroborate." },
+
+ { w:"exculpate", cat:"Court", def:"To clear someone of guilt or blame.",
+   choices:[
+     {t:"to clear of guilt or blame", ok:true, why:"to exculpate is to free someone from fault."},
+     {t:"to prove someone guilty", why:"that's to incriminate — the opposite of exculpate."},
+     {t:"to postpone a trial", why:"exculpate is about blame, not scheduling."},
+     {t:"to formally accuse", why:"accusing assigns blame; exculpating removes it."}],
+   police:"Surveillance footage exculpated the suspect, showing he was across town at the time.",
+   life:"The email exculpated her — it proved she never approved the charge.",
+   syn:["absolve","clear"], ant:"incriminate",
+   mnem:"EX-culpate = EXit from being culpable — you leave the blame behind." },
+
+ { w:"mitigate", cat:"Court", def:"To make something less severe, serious, or painful.",
+   choices:[
+     {t:"to make less severe", ok:true, why:"to mitigate is to lessen the seriousness of something."},
+     {t:"to make more severe", why:"that's to aggravate — the opposite of mitigate."},
+     {t:"to prove true", why:"that's to verify; mitigating changes severity, not truth."},
+     {t:"to delay or postpone", why:"mitigating reduces impact; it doesn't push it to later."}],
+   police:"His cooperation was treated as a factor that mitigated the sentence.",
+   life:"Wearing sunscreen mitigates the damage from strong sun.",
+   syn:["lessen","alleviate"], ant:"aggravate",
+   mnem:"MITE-igate: shrink a problem down to the size of a MITE." },
+
+ { w:"coerce", cat:"Police report", def:"To force someone to act using pressure, threats, or intimidation.",
+   choices:[
+     {t:"to force through pressure or threats", ok:true, why:"coercion means compelling someone against their will."},
+     {t:"to persuade gently", why:"that's to coax — persuasion without force, the soft opposite."},
+     {t:"to question formally", why:"that's to interrogate; coercion is about force, not questioning."},
+     {t:"to release from custody", why:"unrelated — that's to free someone."}],
+   police:"The confession was suppressed because officers appeared to coerce the suspect.",
+   life:"He was coerced into signing the contract under threat of a lawsuit.",
+   syn:["compel","pressure"], ant:"persuade",
+   mnem:"co-ERCE sounds like 'coarse force' — rough force applied to someone." },
+
+ { w:"clandestine", cat:"Criminal justice", def:"Kept secret or done secretively, often because it is illicit.",
+   choices:[
+     {t:"secret and concealed", ok:true, why:"clandestine describes something hidden or covert."},
+     {t:"open and public", why:"that's overt — the direct opposite."},
+     {t:"sudden and violent", why:"clandestine is about secrecy, not force or speed."},
+     {t:"large and organized", why:"a thing can be secret without being large; size isn't the meaning."}],
+   police:"Detectives uncovered a clandestine meeting between the two suspects.",
+   life:"They planned a clandestine surprise party for weeks.",
+   syn:["covert","secret"], ant:"overt",
+   mnem:"CLAN-destine: picture a secret CLAN meeting held in the dark." },
+
+ { w:"deleterious", cat:"Public safety", def:"Causing harm or damage.",
+   choices:[
+     {t:"causing harm or damage", ok:true, why:"deleterious means harmful to health or well-being."},
+     {t:"clearly helpful", why:"that's beneficial — the opposite."},
+     {t:"done on purpose", why:"that's deliberate; deleterious is about harm, not intent."},
+     {t:"delayed or overdue", why:"it only sounds like 'delay' — meaning is unrelated."}],
+   police:"The report warned of the deleterious effects of the contaminated water on residents.",
+   life:"Too little sleep has a deleterious effect on your health.",
+   syn:["harmful","damaging"], ant:"beneficial",
+   mnem:"DELE-terious wants to DELETE your health." },
+
+ { w:"flagrant", cat:"Court", def:"Conspicuously offensive or bad; openly shocking.",
+   choices:[
+     {t:"openly and obviously offensive", ok:true, why:"a flagrant act is glaring and impossible to miss."},
+     {t:"barely noticeable", why:"that's subtle — the opposite of flagrant."},
+     {t:"legally minor", why:"flagrant means the wrong is blatant, not small."},
+     {t:"shown only briefly", why:"duration isn't the point; obviousness is."}],
+   police:"The officer cited the driver for a flagrant disregard of traffic signals.",
+   life:"Cutting the entire line was a flagrant act of rudeness.",
+   syn:["blatant","glaring"], ant:"subtle",
+   mnem:"FLAGrant — so bad it should be FLAGged for everyone to see." },
+
+ { w:"negligent", cat:"Public safety", def:"Failing to take proper or reasonable care.",
+   choices:[
+     {t:"failing to take proper care", ok:true, why:"negligence is carelessness about a duty."},
+     {t:"acting deliberately", why:"negligence is unintentional; deliberate is the contrast."},
+     {t:"easily angered", why:"that's irritable — unrelated to carelessness."},
+     {t:"unable to decide", why:"that's indecisive; negligence is about care, not choice."}],
+   police:"The landlord was found negligent for ignoring the broken smoke alarms.",
+   life:"Leaving a candle burning unattended was negligent.",
+   syn:["careless","remiss"], ant:"careful",
+   mnem:"NEGLIGent = NEGLECT — you neglected to take care." },
+
+ { w:"perpetrate", cat:"Police report", def:"To carry out or commit a harmful or illegal act.",
+   choices:[
+     {t:"to commit (a crime or wrong)", ok:true, why:"to perpetrate is to be the one who does the deed."},
+     {t:"to prevent from happening", why:"that's the opposite — stopping, not doing."},
+     {t:"to witness an event", why:"a witness sees it; a perpetrator does it."},
+     {t:"to investigate a case", why:"investigating comes after; perpetrating is committing."}],
+   police:"The suspect is believed to have perpetrated three burglaries this month.",
+   life:"Someone perpetrated an elaborate hoax on the whole office.",
+   syn:["commit","carry out"], ant:"prevent",
+   mnem:"The 'PERP' PERPetrates the crime." },
+
+ { w:"plausible", cat:"News", def:"Seeming reasonable or probably true.",
+   choices:[
+     {t:"believable and seemingly true", ok:true, why:"plausible means it sounds credible."},
+     {t:"clearly false", why:"that's implausible — the opposite."},
+     {t:"openly hostile", why:"unrelated; plausible is about believability."},
+     {t:"highly detailed", why:"detail doesn't make something plausible; believability does."}],
+   police:"The suspect gave a plausible explanation, but it did not match the timeline.",
+   life:"That's a plausible excuse, but I'm still not sure I believe it.",
+   syn:["credible","believable"], ant:"implausible",
+   mnem:"PLAUS-ible earns apPLAUSe for at least sounding true." },
+
+ { w:"precarious", cat:"Public safety", def:"Dangerously insecure or unstable; likely to fail or fall.",
+   choices:[
+     {t:"dangerously unstable", ok:true, why:"precarious means shaky and at risk of collapse."},
+     {t:"firmly secure", why:"that's stable — the opposite."},
+     {t:"carefully planned", why:"planning is unrelated to instability."},
+     {t:"openly hostile", why:"precarious is about risk, not aggression."}],
+   police:"The victim was found clinging to a precarious position on the ledge.",
+   life:"Their finances were precarious after the sudden layoff.",
+   syn:["unstable","risky"], ant:"secure",
+   mnem:"preCAREious — it needs a lot of CARE or it topples." },
+
+ { w:"reprimand", cat:"Government", def:"A formal expression of disapproval; to rebuke officially.",
+   choices:[
+     {t:"to scold or rebuke formally", ok:true, why:"a reprimand is an official reproach for misconduct."},
+     {t:"to praise officially", why:"that's commendation — the opposite."},
+     {t:"to promote to a higher rank", why:"unrelated; reprimands are corrective, not rewards."},
+     {t:"to place under arrest", why:"a reprimand is discipline, not a legal arrest."}],
+   police:"The officer received a written reprimand for the procedural error.",
+   life:"The teacher reprimanded him for being late again.",
+   syn:["rebuke","admonish"], ant:"praise",
+   mnem:"REPRIMAND — a formal 'RE-command' to fix your behavior." },
+
+ { w:"vigilant", cat:"Public safety", def:"Keeping careful watch for possible danger or difficulty.",
+   choices:[
+     {t:"watchful and alert", ok:true, why:"vigilance is staying attentive to danger."},
+     {t:"careless and inattentive", why:"that's negligent — the opposite."},
+     {t:"openly aggressive", why:"watchfulness isn't aggression."},
+     {t:"physically exhausted", why:"unrelated; a tired person is often less vigilant."}],
+   police:"Officers urged residents to stay vigilant following the recent break-ins.",
+   life:"A good lifeguard stays vigilant even when the pool is calm.",
+   syn:["alert","watchful"], ant:"negligent",
+   mnem:"VIGILant — someone keeping a VIGIL stays awake and watching." },
+
+ { w:"cursory", cat:"Police report", def:"Done quickly with little attention to detail.",
+   choices:[
+     {t:"hasty and superficial", ok:true, why:"a cursory look is quick and shallow."},
+     {t:"thorough and careful", why:"that's the opposite of cursory."},
+     {t:"rude and abrupt", why:"cursory is about lack of depth, not manners."},
+     {t:"secret and hidden", why:"unrelated to secrecy."}],
+   police:"A cursory search of the vehicle missed the hidden compartment.",
+   life:"He gave the contract only a cursory glance before signing.",
+   syn:["hasty","superficial"], ant:"thorough",
+   mnem:"CURSory — you move the CURSOR right past it without really reading." },
+
+ { w:"belligerent", cat:"Police report", def:"Hostile and aggressive; eager to fight.",
+   choices:[
+     {t:"hostile and aggressive", ok:true, why:"a belligerent person is combative."},
+     {t:"calm and cooperative", why:"that's compliant — the opposite."},
+     {t:"confused and disoriented", why:"unrelated to aggression."},
+     {t:"quietly dishonest", why:"belligerence is open hostility, not deceit."}],
+   police:"The suspect became belligerent and refused to comply with commands.",
+   life:"He gets belligerent whenever he loses a game.",
+   syn:["combative","hostile"], ant:"peaceable",
+   mnem:"BELLIGerent — ready to ring the 'BELL' for a fight (Latin bellum = war)." },
+
+ { w:"ambiguous", cat:"Academic", def:"Unclear because it can be understood in more than one way.",
+   choices:[
+     {t:"open to more than one meaning", ok:true, why:"ambiguous means it can be read two ways."},
+     {t:"perfectly clear", why:"that's unambiguous — the opposite."},
+     {t:"extremely lengthy", why:"length has nothing to do with ambiguity."},
+     {t:"strongly worded", why:"strong wording can still be perfectly clear."}],
+   police:"The witness gave an ambiguous description that fit several suspects.",
+   life:"His text was ambiguous — I couldn't tell if he was joking.",
+   syn:["unclear","vague"], ant:"unambiguous",
+   mnem:"AMBIguous — like 'ambidextrous,' it works BOTH ways." },
+
+ { w:"deter", cat:"Public safety", def:"To discourage someone from acting, usually by fear of consequences.",
+   choices:[
+     {t:"to discourage or prevent", ok:true, why:"a deterrent makes someone decide not to act."},
+     {t:"to encourage or invite", why:"that's the opposite of deter."},
+     {t:"to detect or discover", why:"it only sounds similar; meaning differs."},
+     {t:"to delay briefly", why:"deterring stops action, it doesn't merely postpone it."}],
+   police:"Increased foot patrols are intended to deter theft in the district.",
+   life:"The high price deterred me from buying it.",
+   syn:["discourage","dissuade"], ant:"encourage",
+   mnem:"DETER — a deTERrent fills you with the 'TERROR' of consequences." },
+
+ { w:"elicit", cat:"Criminal justice", def:"To draw out or bring forth a response or information.",
+   choices:[
+     {t:"to draw out (a response)", ok:true, why:"to elicit is to evoke or extract a reaction."},
+     {t:"to conceal or hold back", why:"that's to suppress — the opposite."},
+     {t:"to commit an unlawful act", why:"you're thinking of 'illicit' — a different word."},
+     {t:"to place under arrest", why:"unrelated to drawing out information."}],
+   police:"The detective's calm questions elicited a full confession.",
+   life:"Her joke elicited a laugh from the whole room.",
+   syn:["draw out","evoke"], ant:"suppress",
+   mnem:"ELICIT (not illicit): you 'E-LIST' the facts out of someone." },
+
+ { w:"impartial", cat:"Court", def:"Treating all sides equally; not favoring one over another.",
+   choices:[
+     {t:"unbiased and fair", ok:true, why:"impartial means showing no favoritism."},
+     {t:"strongly prejudiced", why:"that's biased — the opposite."},
+     {t:"incomplete or partial in size", why:"that plays on 'part,' but impartial means fair, not unfinished."},
+     {t:"easily irritated", why:"you may be thinking of 'impatient' — different word."}],
+   police:"Internal Affairs conducted an impartial review of the complaint.",
+   life:"A referee has to stay impartial no matter who's playing.",
+   syn:["unbiased","neutral"], ant:"biased",
+   mnem:"IM-PARTIAL = NOT partial to any one side." },
+
+ { w:"malfeasance", cat:"Government", def:"Wrongdoing or misconduct, especially by a public official.",
+   choices:[
+     {t:"misconduct by an official", ok:true, why:"malfeasance is illegal or dishonest official acts."},
+     {t:"outstanding public service", why:"that's the opposite of wrongdoing."},
+     {t:"an honest, minor mistake", why:"malfeasance implies deliberate wrongdoing, not a slip."},
+     {t:"a brief administrative delay", why:"unrelated to misconduct."}],
+   police:"The commissioner resigned amid allegations of malfeasance.",
+   life:"Using company funds for a personal vacation is malfeasance.",
+   syn:["misconduct","wrongdoing"], ant:"integrity",
+   mnem:"MAL-feasance: 'MAL' means bad (malfunction, malware) — bad acts in office." },
+
+ { w:"prudent", cat:"Government", def:"Acting with care and good judgment about the future.",
+   choices:[
+     {t:"wise and cautious", ok:true, why:"a prudent choice is careful and sensible."},
+     {t:"reckless and hasty", why:"that's the opposite of prudent."},
+     {t:"wealthy and powerful", why:"unrelated to money or status."},
+     {t:"stubborn and inflexible", why:"prudence is good judgment, not obstinacy."}],
+   police:"It was prudent to call for backup before approaching the vehicle.",
+   life:"Setting aside money for emergencies is a prudent habit.",
+   syn:["sensible","cautious"], ant:"reckless",
+   mnem:"PRUDENT — careful 'Prudence' always plans ahead." },
+
+ { w:"subsequent", cat:"Government", def:"Following in time or order; coming after.",
+   choices:[
+     {t:"coming after", ok:true, why:"subsequent events follow the first one."},
+     {t:"coming before", why:"that's previous or prior — the opposite."},
+     {t:"happening at the same time", why:"that's simultaneous, not subsequent."},
+     {t:"minor or unimportant", why:"order in time, not importance, is the meaning."}],
+   police:"The initial report and all subsequent updates were filed together.",
+   life:"The first meeting went well; subsequent ones grew tense.",
+   syn:["following","later"], ant:"previous",
+   mnem:"SUB-SEQUENT — it's next in the 'SEQUENCE.'" },
+
+ { w:"candor", cat:"Court", def:"Openness and honesty in expression.",
+   choices:[
+     {t:"honesty and frankness", ok:true, why:"candor is speaking openly and truthfully."},
+     {t:"deception and evasion", why:"that's the opposite of candor."},
+     {t:"anger and hostility", why:"unrelated to honesty."},
+     {t:"confusion and doubt", why:"candor is about openness, not uncertainty."}],
+   police:"The witness answered with surprising candor about her own role.",
+   life:"I appreciated his candor when he admitted the mistake.",
+   syn:["frankness","honesty"], ant:"deceit",
+   mnem:"CANDor — a CANDid photo is honest and unposed." },
+
+ { w:"discrepancy", cat:"Police report", def:"A difference or inconsistency between things that should agree.",
+   choices:[
+     {t:"an inconsistency or mismatch", ok:true, why:"a discrepancy is a failure of two accounts to line up."},
+     {t:"an exact match", why:"that's agreement — the opposite."},
+     {t:"a formal criminal charge", why:"unrelated to charges."},
+     {t:"an unavoidable delay", why:"discrepancy is about difference, not time."}],
+   police:"There was a discrepancy between the two officers' accounts of the timeline.",
+   life:"The bank flagged a discrepancy in my account balance.",
+   syn:["inconsistency","mismatch"], ant:"agreement",
+   mnem:"DIS-CREP-ancy — the details 'DISagree.'" },
+
+ { w:"exonerate", cat:"Court", def:"To officially clear someone of blame or wrongdoing.",
+   choices:[
+     {t:"to clear of blame", ok:true, why:"to exonerate is to declare someone not at fault."},
+     {t:"to find guilty", why:"that's to convict — the opposite."},
+     {t:"to delay a hearing", why:"unrelated to scheduling."},
+     {t:"to accuse formally", why:"accusing assigns blame; exonerating removes it."}],
+   police:"New DNA evidence exonerated the man after years in prison.",
+   life:"The audit exonerated her of any theft.",
+   syn:["absolve","clear"], ant:"convict",
+   mnem:"EX-ONER-ate: the burden ('ONUS') is lifted OFF you." },
+
+ { w:"feasible", cat:"Government", def:"Capable of being done or achieved; practical.",
+   choices:[
+     {t:"possible to do", ok:true, why:"feasible means workable in practice."},
+     {t:"impossible to achieve", why:"that's the opposite of feasible."},
+     {t:"extremely expensive", why:"cost isn't the meaning; possibility is."},
+     {t:"against the law", why:"feasibility is about what can be done, not legality."}],
+   police:"A foot pursuit was not feasible given the size of the crowd.",
+   life:"Finishing the project by Friday is feasible if we start now.",
+   syn:["workable","achievable"], ant:"impossible",
+   mnem:"FEASible — is it a real 'FEAT' we can actually pull off?" },
+
+ { w:"imminent", cat:"Public safety", def:"About to happen; impending.",
+   choices:[
+     {t:"about to happen", ok:true, why:"an imminent event is right around the corner."},
+     {t:"far off in the future", why:"that's distant — the opposite."},
+     {t:"famous and respected", why:"you may be thinking of 'eminent' — a different word."},
+     {t:"unlikely to occur", why:"imminent means very likely and very soon."}],
+   police:"Officers acted on an imminent threat to the hostages.",
+   life:"Dark clouds and thunder signaled an imminent storm.",
+   syn:["impending","looming"], ant:"distant",
+   mnem:"IMMINENT — it's happening 'IN a MINute.'" },
+
+ { w:"notorious", cat:"News", def:"Well known, but for a bad reason.",
+   choices:[
+     {t:"famous for something bad", ok:true, why:"notorious means widely known in a negative way."},
+     {t:"widely admired", why:"that's celebrated — the positive opposite."},
+     {t:"completely unknown", why:"notorious means well known, not obscure."},
+     {t:"recently arrested", why:"reputation, not arrest, is the meaning."}],
+   police:"The corner was notorious for late-night drug activity.",
+   life:"He's notorious for always showing up late.",
+   syn:["infamous","disreputable"], ant:"reputable",
+   mnem:"NOTORIOUS — 'NOT glORIOUS' — known for the wrong reasons." },
+
+ { w:"obstruct", cat:"Criminal justice", def:"To block or get in the way of; to hinder progress.",
+   choices:[
+     {t:"to block or hinder", ok:true, why:"to obstruct is to impede or get in the way."},
+     {t:"to assist or clear the way", why:"that's the opposite of obstruct."},
+     {t:"to watch closely", why:"you may be thinking of 'observe' — different word."},
+     {t:"to question under oath", why:"unrelated to blocking."}],
+   police:"He was charged with obstructing the investigation by hiding evidence.",
+   life:"A fallen tree obstructed the entire road.",
+   syn:["block","hinder"], ant:"assist",
+   mnem:"OB-STRUCT — a 'STRUCTure' placed in your path." },
+
+ { w:"pertinent", cat:"Police report", def:"Directly relevant to the matter at hand.",
+   choices:[
+     {t:"relevant to the matter", ok:true, why:"pertinent facts relate directly to the issue."},
+     {t:"unrelated to the matter", why:"that's irrelevant — the opposite."},
+     {t:"rude or disrespectful", why:"you may be thinking of 'impertinent' — different word."},
+     {t:"lasting a long time", why:"you may be thinking of 'permanent' — different word."}],
+   police:"The officer's report included only the facts pertinent to the case.",
+   life:"Let's stick to pertinent questions so we don't run out of time.",
+   syn:["relevant","applicable"], ant:"irrelevant",
+   mnem:"PERTINENT — it 'PERTAINS' directly to the point." },
+
+ { w:"rescind", cat:"Government", def:"To cancel, repeal, or take back officially.",
+   choices:[
+     {t:"to cancel or revoke", ok:true, why:"to rescind is to officially undo something."},
+     {t:"to approve or enact", why:"that's the opposite of rescind."},
+     {t:"to send again", why:"you may be thinking of 'resend' — different word."},
+     {t:"to postpone briefly", why:"rescinding cancels entirely, not just delays."}],
+   police:"The department rescinded the policy after the review.",
+   life:"The company rescinded the job offer at the last minute.",
+   syn:["revoke","repeal"], ant:"enact",
+   mnem:"RE-SCIND — imagine 'SCISSORS' cutting the order out; it's cancelled." },
+
+ { w:"scrutinize", cat:"Police report", def:"To examine or inspect very carefully.",
+   choices:[
+     {t:"to examine closely", ok:true, why:"to scrutinize is to inspect in fine detail."},
+     {t:"to glance at quickly", why:"that's to skim — the opposite."},
+     {t:"to ignore completely", why:"scrutiny is close attention, not neglect."},
+     {t:"to criticize harshly", why:"close; but scrutiny is careful examination, which may find no fault."}],
+   police:"Detectives scrutinized the footage frame by frame.",
+   life:"She scrutinized the lease before signing anything.",
+   syn:["examine","inspect"], ant:"skim",
+   mnem:"SCRUTINIZE — put it under 'SCRUTiny,' like a microscope." },
+
+ { w:"tenacious", cat:"News", def:"Holding firmly; persistent and not giving up.",
+   choices:[
+     {t:"persistent and determined", ok:true, why:"a tenacious person refuses to quit."},
+     {t:"easily discouraged", why:"that's the opposite of tenacious."},
+     {t:"quietly dishonest", why:"unrelated to persistence."},
+     {t:"brief and temporary", why:"tenacity is about holding on, not being short-lived."}],
+   police:"A tenacious investigator, she refused to close the cold case.",
+   life:"His tenacious effort finally paid off after months.",
+   syn:["persistent","dogged"], ant:"irresolute",
+   mnem:"TENacious — holds on with all 'TEN' fingers and won't let go." },
+
+ { w:"unwarranted", cat:"Court", def:"Not justified or authorized; without good reason.",
+   choices:[
+     {t:"not justified", ok:true, why:"unwarranted means done without proper reason."},
+     {t:"fully justified", why:"that's warranted — the opposite."},
+     {t:"carried out unarmed", why:"it only sounds like 'unarmed' — meaning differs."},
+     {t:"completely unexpected", why:"a thing can be expected yet still unjustified."}],
+   police:"The complaint alleged an unwarranted use of force during the stop.",
+   life:"Her harsh criticism felt unwarranted and unfair.",
+   syn:["unjustified","baseless"], ant:"justified",
+   mnem:"UN-WARRANT-ed — no 'WARRANT,' no justification for it." },
+
+ { w:"volatile", cat:"Public safety", def:"Liable to change rapidly and unpredictably, often for the worse.",
+   choices:[
+     {t:"unstable and quick to change", ok:true, why:"a volatile situation can erupt without warning."},
+     {t:"calm and steady", why:"that's stable — the opposite."},
+     {t:"heavy and slow-moving", why:"volatility is about sudden change, not weight."},
+     {t:"quiet and private", why:"unrelated to secrecy or noise."}],
+   police:"The crowd grew volatile, and officers called for additional units.",
+   life:"The stock market has been volatile all year.",
+   syn:["unstable","explosive"], ant:"stable",
+   mnem:"VOLATILE — it could 'VOLcano' at any second." },
+
+ { w:"credible", cat:"Court", def:"Able to be believed; trustworthy.",
+   choices:[
+     {t:"believable and trustworthy", ok:true, why:"a credible witness can be believed."},
+     {t:"easily fooled", why:"you may be thinking of 'gullible' — different word."},
+     {t:"impossible to believe", why:"that's incredible — the opposite."},
+     {t:"certainly guilty", why:"credibility is about believability, not guilt."}],
+   police:"The jury found the witness credible and her account consistent.",
+   life:"That's a credible source, so I trust the report.",
+   syn:["believable","reliable"], ant:"dubious",
+   mnem:"CREDible — you give it 'CREDit' because you believe it." },
+
+ { w:"lucid", cat:"Academic", def:"Clear and easy to understand; also clear-thinking.",
+   choices:[
+     {t:"clear and easy to understand", ok:true, why:"a lucid account is easy to follow."},
+     {t:"confusing and muddled", why:"that's murky — the opposite."},
+     {t:"deliberately dishonest", why:"clarity, not honesty, is the meaning."},
+     {t:"very brightly colored", why:"unrelated to color."}],
+   police:"Despite the shock, the witness gave a lucid, detailed account.",
+   life:"The professor's lucid explanation made the idea click.",
+   syn:["clear","coherent"], ant:"murky",
+   mnem:"LUCID — full of light and 'LUCidity' (Latin lux = light)." },
+
+ { w:"intervene", cat:"Police report", def:"To come between in order to change or settle a situation.",
+   choices:[
+     {t:"to step in to alter a situation", ok:true, why:"to intervene is to get involved and change the outcome."},
+     {t:"to withdraw and stay out", why:"that's the opposite of intervening."},
+     {t:"to interview a witness", why:"it only sounds similar; meaning differs."},
+     {t:"to watch without acting", why:"intervening means acting, not just observing."}],
+   police:"Officers intervened before the argument turned violent.",
+   life:"A neighbor intervened to break up the fight.",
+   syn:["step in","mediate"], ant:"withdraw",
+   mnem:"INTER-VENE — to 'come BETWEEN' (inter) and take action." },
+
+ { w:"concise", cat:"Police report", def:"Giving information clearly in few words.",
+   choices:[
+     {t:"brief but complete", ok:true, why:"concise writing is short and to the point."},
+     {t:"long and wordy", why:"that's verbose — the opposite."},
+     {t:"vague and unclear", why:"conciseness still requires clarity; it isn't vagueness."},
+     {t:"formal and polite", why:"tone isn't the meaning; brevity is."}],
+   police:"A good report is concise, factual, and free of opinion.",
+   life:"Keep your answer concise so we stay on schedule.",
+   syn:["brief","succinct"], ant:"wordy",
+   mnem:"CONCISE — 'CONcentrated' and cut with preCISE trimming." }
+];
+
+/* =====================================================================
+   ENGINE
+===================================================================== */
+const $ = id => document.getElementById(id);
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
+const KEYS=["A","B","C","D"];
+
+const S = {
+  n:0, correct:0,
+  cat:{},                 // cat -> {c,t}
+  missed:{},              // word -> times missed (still outstanding)
+  answeredThisCP:0,
+  deck:[], review:[], inReview:false,
+  cur:null, locked:false,
+  last25:[]               // rolling correctness for ranking
+};
+
+function loadState(){
+  try{ const s=JSON.parse(localStorage.getItem("pdvocab")); if(s) Object.assign(S,s); }catch{}
+}
+function saveState(){
+  localStorage.setItem("pdvocab", JSON.stringify({
+    n:S.n,correct:S.correct,cat:S.cat,missed:S.missed,last25:S.last25
+  }));
+}
+
+function rankFor(pct){
+  if(pct>=90) return ["Competitive","var(--gold)"];
+  if(pct>=75) return ["Above Average","var(--good)"];
+  if(pct>=60) return ["Average","var(--warn)"];
+  return ["Below Average","var(--bad)"];
+}
+function rollingPct(){
+  if(!S.last25.length) return 0;
+  return Math.round(S.last25.reduce((a,b)=>a+b,0)/S.last25.length*100);
+}
+
+function renderScorebar(){
+  const pct = S.n? Math.round(S.correct/S.n*100):0;
+  const [rank,color]=rankFor(rollingPct());
+  const missedCount=Object.keys(S.missed).length;
+  $("scorebar").innerHTML =
+    `<span class="chip"><b>${S.correct}</b>/${S.n} correct</span>`+
+    `<span class="chip"><b>${pct}%</b> overall</span>`+
+    `<span class="chip">📒 <b>${missedCount}</b> to review</span>`+
+    `<span class="chip rank" style="border-color:${color};color:${color}">${rank}</span>`;
+}
+
+function rebuildDeck(){
+  // missed words come around again first (spaced practice), then the rest
+  const missedIdx = WORDS.map((w,i)=>i).filter(i=>S.missed[WORDS[i].w]);
+  const restIdx   = WORDS.map((w,i)=>i).filter(i=>!S.missed[WORDS[i].w]);
+  S.deck = [...shuffle(missedIdx), ...shuffle(restIdx)];
+}
+
+function nextQuestion(){
+  $("feedback").classList.add("hidden");
+  $("afterBtns").classList.add("hidden");
+  $("checkpoint").classList.add("hidden");
+  $("qcard").classList.remove("hidden");
+  S.locked=false;
+
+  let idx;
+  if(S.inReview){
+    if(!S.review.length){ endReview(); return; }
+    idx=S.review.shift();
+  } else {
+    if(!S.deck.length) rebuildDeck();
+    idx=S.deck.shift();
+  }
+  const word=WORDS[idx];
+  const choices=shuffle(word.choices.map((c,i)=>({...c})));
+  S.cur={ idx, word, choices };
+
+  $("qnum").innerHTML = (S.inReview?`<span style="color:var(--gold)">REVIEW · </span>`:"")+
+    `Question ${S.n+1} &nbsp;·&nbsp; <span class="cat">${word.cat}</span>`;
+  $("word").textContent = word.w.toUpperCase();
+  const cw=$("choices"); cw.innerHTML="";
+  choices.forEach((c,i)=>{
+    const b=document.createElement("button");
+    b.className="choice"; b.innerHTML=`<span class="k">${KEYS[i]}</span>${c.t}`;
+    b.onclick=()=>answer(i);
+    cw.appendChild(b);
+  });
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function answer(i){
+  if(S.locked) return;
+  S.locked=true;
+  const {word,choices}=S.cur;
+  const ok=!!choices[i].ok;
+  const btns=$("choices").querySelectorAll(".choice");
+  btns.forEach((b,bi)=>{
+    b.setAttribute("disabled","");
+    if(choices[bi].ok) b.classList.add("correct");
+    else if(bi===i) b.classList.add("wrong");
+  });
+
+  // stats
+  S.n++;
+  S.cat[word.cat]=S.cat[word.cat]||{c:0,t:0};
+  S.cat[word.cat].t++;
+  if(ok){ S.correct++; S.cat[word.cat].c++; }
+  S.last25.push(ok?1:0); if(S.last25.length>25) S.last25.shift();
+
+  // missed-words box
+  if(ok){ if(S.inReview && S.missed[word.w]){ delete S.missed[word.w]; } }
+  else { S.missed[word.w]=(S.missed[word.w]||0)+1; }
+
+  // feedback
+  const correctText = choices.find(c=>c.ok).t;
+  let html = `<div class="verdict ${ok?'ok':'no'}">${ok?"✓ Correct":"✗ Not quite"}</div>`;
+  html += `<h4>Definition</h4><p><b>${word.w}</b> — ${word.def}</p>`;
+  html += `<h4>Why the answer is “${correctText}”</h4>`;
+  choices.forEach((c,ci)=>{
+    if(c.ok) html+=`<div class="why">✓ <b>${c.t}</b> — Correct: ${c.why}</div>`;
+    else html+=`<div class="why">✗ <b>${c.t}</b> — ${c.why}</div>`;
+  });
+  html += `<h4>In a sentence</h4>`;
+  html += `<div class="sent"><span class="tag">Police report</span>${word.police}</div>`;
+  html += `<div class="sent"><span class="tag">Everyday life</span>${word.life}</div>`;
+  html += `<h4>Synonyms &amp; antonym</h4><div class="pillrow">`+
+          word.syn.map(s=>`<span class="pill syn">= ${s}</span>`).join("")+
+          `<span class="pill ant">≠ ${word.ant}</span></div>`;
+  html += `<div class="mnem">🧠 <b>Memory trick:</b> ${word.mnem}</div>`;
+  const fb=$("feedback"); fb.innerHTML=html; fb.classList.remove("hidden");
+
+  // next button / checkpoint
+  S.answeredThisCP++;
+  const after=$("afterBtns"); after.classList.remove("hidden");
+  const dueCP = !S.inReview && S.answeredThisCP>=25;
+  after.innerHTML = `<button class="bigbtn" id="nextQ">${dueCP?"See checkpoint ›":"Next question ›"}</button>`;
+  $("nextQ").onclick = dueCP ? showCheckpoint : nextQuestion;
+
+  renderScorebar(); saveState();
+  $("feedback").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function weakestCats(){
+  return Object.entries(S.cat)
+    .filter(([,v])=>v.t>=2)
+    .map(([k,v])=>({cat:k,pct:Math.round(v.c/v.t*100),c:v.c,t:v.t}))
+    .sort((a,b)=>a.pct-b.pct);
+}
+
+function showCheckpoint(){
+  S.answeredThisCP=0;
+  $("qcard").classList.add("hidden");
+  const pct=S.n?Math.round(S.correct/S.n*100):0;
+  const roll=rollingPct();
+  const [rank,color]=rankFor(roll);
+  const weak=weakestCats();
+  const missedWords=Object.keys(S.missed);
+
+  let html=`<div class="center"><div class="qnum">Checkpoint · ${S.n} questions in</div>
+    <div class="big" style="color:${color}">${pct}%</div>
+    <div style="color:var(--muted)">overall · last-25 pace <b style="color:${color}">${roll}%</b> · <span style="color:${color}">${rank}</span></div></div>`;
+
+  html+=`<h4 style="color:var(--accent);margin:16px 0 6px;font-size:12px;letter-spacing:1px;text-transform:uppercase">Weakest areas</h4>`;
+  if(weak.length){
+    weak.slice(0,3).forEach(w=>{
+      html+=`<div class="weak">${w.cat} — <b>${w.pct}%</b> (${w.c}/${w.t})
+        <div class="bar"><div style="width:${w.pct}%;background:${w.pct<60?'var(--bad)':w.pct<75?'var(--warn)':'var(--good)'}"></div></div></div>`;
+    });
+  } else html+=`<div class="weak">Not enough data yet — keep going.</div>`;
+
+  if(missedWords.length){
+    html+=`<h4 style="color:var(--accent);margin:16px 0 6px;font-size:12px;letter-spacing:1px;text-transform:uppercase">Review round</h4>
+      <p style="color:var(--muted);font-size:14px">You have ${missedWords.length} word${missedWords.length>1?"s":""} to lock in: <b style="color:var(--text)">${missedWords.slice(0,10).join(", ")}</b>. Get one right to clear it from your box.</p>
+      <button class="bigbtn" id="startReview" style="margin-top:8px">Start ${Math.min(10,missedWords.length)}-word review</button>
+      <button class="bigbtn ghost" id="skipReview" style="margin-top:10px">Skip — keep going</button>`;
+  } else {
+    html+=`<p style="color:var(--good);margin-top:14px">📒 Your Missed Words box is empty — excellent. Keep the streak going.</p>
+      <button class="bigbtn" id="skipReview" style="margin-top:8px">Continue ›</button>`;
+  }
+  html+=`<button class="bigbtn ghost" id="finishNow" style="margin-top:10px">Finish &amp; see my readiness report</button>`;
+
+  const cp=$("checkpoint"); cp.innerHTML=html; cp.classList.remove("hidden");
+  const sr=$("startReview"); if(sr) sr.onclick=startReview;
+  $("skipReview").onclick=()=>{ S.inReview=false; nextQuestion(); };
+  $("finishNow").onclick=showReport;
+  window.scrollTo({top:0,behavior:"smooth"});
+  saveState();
+}
+
+function startReview(){
+  const missedIdx = WORDS.map((w,i)=>i).filter(i=>S.missed[WORDS[i].w]);
+  S.review = shuffle(missedIdx).slice(0,10);
+  S.inReview=true;
+  nextQuestion();
+}
+function endReview(){
+  S.inReview=false;
+  const cp=$("checkpoint");
+  cp.innerHTML=`<div class="center"><div class="big" style="color:var(--good)">✓</div>
+    <p>Review round complete. ${Object.keys(S.missed).length} word(s) still in your box.</p>
+    <button class="bigbtn" id="afterReview" style="margin-top:10px">Keep training ›</button>
+    <button class="bigbtn ghost" id="reportAfter" style="margin-top:10px">Finish &amp; see report</button></div>`;
+  $("qcard").classList.add("hidden");
+  cp.classList.remove("hidden");
+  $("afterReview").onclick=nextQuestion;
+  $("reportAfter").onclick=showReport;
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function showReport(){
+  $("qcard").classList.add("hidden");
+  $("checkpoint").classList.add("hidden");
+  const pct=S.n?Math.round(S.correct/S.n*100):0;
+  const roll=rollingPct();
+  const [rank,color]=rankFor(roll);
+  const weak=weakestCats();
+  const missedWords=Object.keys(S.missed);
+
+  // study list: missed words (most-missed first), up to 50
+  const study=Object.entries(S.missed).sort((a,b)=>b[1]-a[1]).slice(0,50)
+    .map(([w])=>WORDS.find(x=>x.w===w)).filter(Boolean);
+
+  let est;
+  if(roll>=90) est="On this pace you'd likely score in the strong/competitive range on the Philadelphia PD vocabulary section. Keep it up and confirm the current passing standard on joinphillypd.com.";
+  else if(roll>=75) est="You're above average and trending toward the passing range. Close the gap on your weak categories and the missed-words list below.";
+  else if(roll>=60) est="You're around average — passable on a good day, but not yet safe. Drill the missed words daily until your last-25 pace clears 80%.";
+  else est="You're below the comfort zone for the exam right now. Focus hard on the study list below and retest — this is very improvable in a few weeks.";
+
+  let html=`<div class="card center">
+    <div class="qnum">Readiness report · ${S.n} questions</div>
+    <div class="big" style="font-size:52px;font-weight:800;color:${color}">${pct}%</div>
+    <div style="margin:4px 0">overall accuracy · recent pace <b style="color:${color}">${roll}%</b></div>
+    <div style="margin:8px 0 0"><span class="chip rank" style="border-color:${color};color:${color};font-size:15px;padding:7px 16px">${rank} for PPD applicants</span></div>
+  </div>`;
+
+  html+=`<div class="card"><h4 style="color:var(--accent);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Estimate</h4><p style="font-size:15px">${est}</p></div>`;
+
+  html+=`<div class="card"><h4 style="color:var(--accent);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Weakest categories</h4>`;
+  if(weak.length) weak.slice(0,4).forEach(w=>{
+    html+=`<div class="weak">${w.cat} — <b>${w.pct}%</b> (${w.c}/${w.t})<div class="bar"><div style="width:${w.pct}%;background:${w.pct<60?'var(--bad)':w.pct<75?'var(--warn)':'var(--good)'}"></div></div></div>`;
+  }); else html+=`<p style="color:var(--muted)">Answer more questions to map your weak spots.</p>`;
+  html+=`</div>`;
+
+  html+=`<div class="card"><h4 style="color:var(--accent);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Study these ${study.length} words most</h4>`;
+  if(study.length){
+    html+=`<ul class="study">`+study.map(x=>`<li><b>${x.w}</b> — ${x.def} <span style="color:var(--good)">(= ${x.syn[0]})</span></li>`).join("")+`</ul>`;
+  } else html+=`<p style="color:var(--good)">You haven't missed anything yet — nothing to study. Impressive.</p>`;
+  html+=`</div>`;
+
+  html+=`<button class="bigbtn" id="resume">‹ Back to training</button>
+    <button class="bigbtn ghost" id="reset" style="margin-top:10px">Reset all progress</button>`;
+
+  const r=$("report"); r.innerHTML=html; r.classList.remove("hidden");
+  $("resume").onclick=()=>{ r.classList.add("hidden"); nextQuestion(); };
+  $("reset").onclick=()=>{ if(confirm("Erase all your progress and missed words?")){ localStorage.removeItem("pdvocab"); location.reload(); } };
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* start */
+$("startBtn").onclick=()=>{
+  $("intro").classList.add("hidden");
+  rebuildDeck();
+  nextQuestion();
+  renderScorebar();
+};
+loadState();
+renderScorebar();
+if(S.n>0){
+  // returning user: jump straight back into training
+  $("intro").querySelector("#startBtn").textContent="Resume training";
+}
+</script>
+</body>
+</html>
