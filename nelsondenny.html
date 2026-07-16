@@ -59,6 +59,15 @@
   .stat{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
   .stat b{font-size:22px;display:block}
   .stat small{color:var(--muted);font-size:12px}
+  .gsec{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
+  .gsec-h{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:700;font-size:15px;margin-bottom:6px}
+  .gpill{flex:none;font-size:12px;font-weight:700;color:var(--accent);background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+  .gsec p{color:var(--muted);font-size:14px}
+  .gsec p b,.glist b{color:var(--text)}
+  .glist{margin:10px 0 0 18px;color:var(--muted);font-size:14px}
+  .glist li{margin-bottom:8px}
+  .gk{display:inline-block;font-weight:700;color:var(--accent);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:13px}
+  .groots{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin-top:12px;font-size:14px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -71,6 +80,9 @@
 
   <!-- HOME -->
   <section id="home">
+    <button class="modeBtn" data-mode="guide" style="border-color:var(--warn);background:linear-gradient(135deg,rgba(255,176,46,.16),var(--panel2))">
+      <span><b>📚 Study Guide</b><small>How the test works, scoring & section-by-section strategy</small></span><span class="go">›</span>
+    </button>
     <button class="modeBtn" data-mode="exam" style="border-color:var(--accent);background:linear-gradient(135deg,rgba(77,141,255,.20),var(--panel2))">
       <span><b>🎯 Full Vocab Test</b><small>80 questions · 15-minute timer · real test format</small></span><span class="go">›</span>
     </button>
@@ -102,6 +114,111 @@
         <li>Confirm Philly PD's current passing grade level on joinphillypd.com.</li>
       </ul>
     </div>
+  </section>
+
+  <!-- STUDY GUIDE -->
+  <section id="guide" class="hidden">
+    <button class="bigbtn ghost" id="guideBackTop" style="margin-bottom:16px">‹ Home</button>
+
+    <div class="card">
+      <b style="font-size:17px">What the Nelson-Denny is</b>
+      <p style="color:var(--muted);font-size:14px;margin-top:8px">
+        The Nelson-Denny Reading Test (NDRT) measures three things: your <b style="color:var(--text)">vocabulary</b>,
+        your <b style="color:var(--text)">reading comprehension</b>, and your <b style="color:var(--text)">reading rate</b>.
+        Police and fire departments, colleges, and training programs use it to check that you read at the level the job or course demands.
+        Every answer is multiple choice with <b style="color:var(--text)">five options</b>, and there's
+        <b style="color:var(--text)">no penalty for guessing</b> — a blank scores the same as a wrong answer, so never leave one empty.
+      </p>
+    </div>
+
+    <div class="card">
+      <b style="font-size:17px">The three sections</b>
+      <div class="gsec">
+        <div class="gsec-h"><span>① Vocabulary</span><span class="gpill">80 items · 15 min</span></div>
+        <p>You're shown a word and five choices. Pick the one closest in meaning. That's roughly
+        <b>11 seconds per item</b> — trust your first read and keep moving.</p>
+      </div>
+      <div class="gsec">
+        <div class="gsec-h"><span>② Comprehension</span><span class="gpill">38 items · 20 min</span></div>
+        <p>Seven reading passages (science, social studies, humanities) each followed by questions on the
+        main idea, specific details, and inferences. That's about <b>2–3 minutes per passage</b> including its questions.</p>
+      </div>
+      <div class="gsec">
+        <div class="gsec-h"><span>③ Reading Rate</span><span class="gpill">first 1 min</span></div>
+        <p>During the first minute of the comprehension section you mark how far you've read. That's converted to
+        <b>words per minute</b> and an estimated grade level. It's a diagnostic — read at your normal careful pace, don't race.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <b style="font-size:17px">How it's scored</b>
+      <p style="color:var(--muted);font-size:14px;margin-top:8px">
+        Your raw score (number correct) is converted into a <b style="color:var(--text)">grade equivalent</b> —
+        e.g. <span class="gk">12.5</span> means you read like a 12th-grader in the 5th month — and a
+        <b style="color:var(--text)">percentile</b> comparing you to others. Departments set their own cutoff, usually a
+        grade level. Because guessing isn't penalized, <b style="color:var(--text)">answer every single question</b>,
+        even if you have to bubble blind in the last 30 seconds.
+      </p>
+    </div>
+
+    <div class="card">
+      <b style="font-size:17px">Vocabulary strategy</b>
+      <ul class="glist">
+        <li><b>Break the word apart.</b> Prefixes, roots and suffixes carry meaning — <i>bene-</i> = good, <i>-cede</i> = go/yield, <i>-ous</i> = full of.</li>
+        <li><b>Answer before you look.</b> Guess the meaning in your head, then find the choice that matches — harder to be fooled by look-alikes.</li>
+        <li><b>Eliminate.</b> Two choices are often obvious opposites planted as traps. Cross out what's clearly wrong and choose from what's left.</li>
+        <li><b>Feel its charge.</b> If a word sounds positive or negative, drop choices with the opposite tone.</li>
+        <li><b>Don't stall.</b> Circle a best guess, mark it, move on. One hard word isn't worth three easy ones.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <b style="font-size:17px">Comprehension strategy</b>
+      <ul class="glist">
+        <li><b>Read the questions first.</b> Skim what you'll be asked so you read the passage with a purpose.</li>
+        <li><b>Find the main idea.</b> The first and last sentences of a passage (and of each paragraph) usually carry it.</li>
+        <li><b>Detail questions live in the text.</b> Go back and locate the exact line — don't answer from memory.</li>
+        <li><b>Inference ≠ invention.</b> The answer must be supported by the passage, not by outside knowledge or a big leap.</li>
+        <li><b>Watch absolutes.</b> Choices with <i>always</i>, <i>never</i>, <i>all</i>, <i>none</i> are often wrong — real passages hedge.</li>
+        <li><b>Budget time.</b> ~2.8 min a passage. If a question is eating the clock, mark your best guess and come back.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <b style="font-size:17px">Common roots &amp; prefixes</b>
+      <div class="groots">
+        <div><span class="gk">bene-</span> good</div>
+        <div><span class="gk">mal-</span> bad</div>
+        <div><span class="gk">a- / an-</span> without</div>
+        <div><span class="gk">anti-</span> against</div>
+        <div><span class="gk">circum-</span> around</div>
+        <div><span class="gk">de-</span> down / away</div>
+        <div><span class="gk">dis-</span> not / apart</div>
+        <div><span class="gk">-ous</span> full of</div>
+        <div><span class="gk">-cede</span> go / yield</div>
+        <div><span class="gk">-fy</span> to make</div>
+        <div><span class="gk">-ject</span> throw</div>
+        <div><span class="gk">-scribe</span> write</div>
+        <div><span class="gk">luc / lum</span> light</div>
+        <div><span class="gk">ver-</span> truth</div>
+        <div><span class="gk">-phobia</span> fear</div>
+        <div><span class="gk">-ology</span> study of</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <b style="font-size:17px">Test-day checklist</b>
+      <ul class="glist">
+        <li>Sleep and eat — reading fatigue is real over 35 minutes of focus.</li>
+        <li>It's timed and tight. Pace by the clock, don't perfect one item.</li>
+        <li>Bubble something for <i>every</i> question before time is called.</li>
+        <li>If you finish a section early, recheck flagged items only.</li>
+        <li>Confirm your department's current passing grade level before test day.</li>
+      </ul>
+      <div class="note">Then put it into practice — head back and take the timed <b>Full Vocab Test</b> and <b>Full Reading Test</b>.</div>
+    </div>
+
+    <button class="bigbtn ghost" id="guideBack">‹ Back to Home</button>
   </section>
 
   <!-- QUIZ -->
@@ -611,6 +728,7 @@ function buildMissedItems(){
 
 function startMode(mode){
   hide("home");
+  if(mode==="guide"){ show("guide"); window.scrollTo(0,0); return; }
   if(mode==="rate"){ show("rate"); startRate(); return; }
   let items, seconds, title;
   if(mode==="vocab"){ items=buildVocabItems(20); seconds=8*60; title="Vocabulary"; }
@@ -850,6 +968,9 @@ function renderMissed(){
 }
 
 document.querySelectorAll(".modeBtn").forEach(b=> b.onclick=()=>startMode(b.dataset.mode));
+const guideHome=()=>{ hide("guide"); show("home"); window.scrollTo(0,0); };
+$("guideBack").onclick=guideHome;
+$("guideBackTop").onclick=guideHome;
 renderBest();
 </script>
 </body>
