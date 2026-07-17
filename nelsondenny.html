@@ -83,6 +83,9 @@
     <button class="modeBtn" data-mode="guide" style="border-color:var(--warn);background:linear-gradient(135deg,rgba(255,176,46,.16),var(--panel2))">
       <span><b>📚 Study Guide</b><small>How the test works, scoring & section-by-section strategy</small></span><span class="go">›</span>
     </button>
+    <button class="modeBtn" data-mode="guidevocab" style="border-color:var(--warn)">
+      <span><b>📝 Study Guide Words</b><small>Quiz the 29 vocabulary words from the study guide list</small></span><span class="go">›</span>
+    </button>
     <button class="modeBtn" data-mode="exam" style="border-color:var(--accent);background:linear-gradient(135deg,rgba(77,141,255,.20),var(--panel2))">
       <span><b>🎯 Full Vocab Test</b><small>80 questions · 15-minute timer · real test format</small></span><span class="go">›</span>
     </button>
@@ -444,7 +447,8 @@ const VOCAB = [
   ["meritorious", ["shameful","praiseworthy","gloomy","hollow","rapid"], 1],
   ["plethora", ["shortage","an excess","noise","haste","gloom"], 1],
   ["terse", ["wordy","brief and to the point","gather","polish","delay"], 1],
-  ["vigorous", ["weak","energetic","gloomy","hollow","brief"], 1]
+  ["vigorous", ["weak","energetic","gloomy","hollow","brief"], 1],
+  ["resist", ["give in","withstand","gather","polish","delay"], 1]
 ];
 
 const PASSAGES = [
@@ -724,6 +728,17 @@ function buildVocabItems(n){
     return { kind:"vocab", word, choices:order.map(o=>o.c), answer:order.findIndex(o=>o.i===ans), picked:null };
   });
 }
+/* Words drawn straight from the Nelson-Denny study guide list */
+const GUIDE_WORDS = ["belligerent","festive","accumulate","inundate","obtuse","negate","mathematics","preclude","meander","hinder","query","tributary","validate","abode","pedigree","constrict","detract","accolade","deduct","vague","vignette","resist","futile","hypothetical","global","meritorious","plethora","terse","vigorous"];
+function buildGuideItems(n){
+  const set = new Set(GUIDE_WORDS);
+  const pool = VOCAB.filter(v=>set.has(v[0]));
+  const chosen = n ? shuffle(pool).slice(0,n) : shuffle(pool);
+  return chosen.map(([word,choices,ans])=>{
+    const order = shuffle(choices.map((c,i)=>({c,i})));
+    return { kind:"vocab", word, choices:order.map(o=>o.c), answer:order.findIndex(o=>o.i===ans), picked:null };
+  });
+}
 function buildCompItems(passages){
   const items=[];
   for(const p of passages){
@@ -757,6 +772,7 @@ function startMode(mode){
   if(mode==="rate"){ show("rate"); startRate(); return; }
   let items, seconds, title;
   if(mode==="vocab"){ items=buildVocabItems(20); seconds=8*60; title="Vocabulary"; }
+  else if(mode==="guidevocab"){ items=buildGuideItems(); seconds=Math.max(180, items.length*11); title="Study Guide Words"; }
   else if(mode==="exam"){ items=buildVocabItems(80); seconds=15*60; title="Full Vocab Test"; }
   else if(mode==="comp"){ items=buildCompItems(shuffle(PASSAGES).slice(0,2)); seconds=12*60; title="Comprehension"; }
   else if(mode==="fullread"){
