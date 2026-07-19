@@ -68,6 +68,16 @@
   .glist li{margin-bottom:8px}
   .gk{display:inline-block;font-weight:700;color:var(--accent);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:13px}
   .groots{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin-top:12px;font-size:14px;color:var(--muted)}
+  .meaning{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:12px 14px;margin-top:12px;font-size:15px;color:var(--text)}
+  .meaning b{color:var(--accent)}
+  .writeInput{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:15px 16px;color:var(--text);font-size:20px;font-weight:600;margin:14px 0 10px;text-align:center;letter-spacing:.5px}
+  .writeInput:focus{outline:none;border-color:var(--accent)}
+  .writeMsg{min-height:20px;font-size:14px;text-align:center;margin-bottom:12px}
+  .writeMsg.bad{color:var(--bad)}
+  .writeMsg.good{color:var(--good)}
+  .shake{animation:shake .35s}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+  @media (prefers-reduced-motion:reduce){.shake{animation:none}}
 </style>
 </head>
 <body>
@@ -106,6 +116,9 @@
     </button>
     <button class="modeBtn" id="missedBtn" data-mode="missed" style="border-color:var(--warn)">
       <span><b>📒 My Missed Words</b><small id="missedSub">words you get wrong show up here</small></span><span class="go">›</span>
+    </button>
+    <button class="modeBtn" id="writeBtn" data-mode="writemissed" style="border-color:var(--warn)">
+      <span><b>✍️ Write Out Missed Words</b><small id="writeSub">type each missed word out to drill the spelling</small></span><span class="go">›</span>
     </button>
 
     <div class="card">
@@ -260,6 +273,17 @@
     </div>
     <div id="rateQuiz" class="hidden"></div>
     <div id="rateResult" class="hidden"></div>
+  </section>
+
+  <!-- WRITE-OUT MISSED WORDS -->
+  <section id="write" class="hidden">
+    <div class="topbar">
+      <button class="ghost" style="border-radius:999px;padding:6px 12px;cursor:pointer" id="writeQuit">✕ quit</button>
+      <span id="writeCount"></span>
+      <span class="pill" id="writeLeft"></span>
+    </div>
+    <div class="prog"><div id="writeProg"></div></div>
+    <div id="writeBody"></div>
   </section>
 
   <!-- RESULTS -->
@@ -708,6 +732,42 @@ function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=(Math.ra
 function wordCount(t){ return t.trim().split(/\s+/).length; }
 const KEYS = ["A","B","C","D","E"];
 
+/* Full definitions for the study-guide words; any other word falls back
+   to its closest synonym so every answered item still shows a meaning. */
+const DEFS = {
+  belligerent:"hostile and aggressive; eager to fight or argue",
+  festive:"cheerful and celebratory, like a party or holiday",
+  accumulate:"to gather or build up gradually over time",
+  inundate:"to flood, or to overwhelm with a large amount of something",
+  obtuse:"slow to understand; not sharp or perceptive",
+  negate:"to cancel out, deny, or make ineffective",
+  mathematics:"the study of numbers, quantities, shapes, and their relationships",
+  preclude:"to prevent something from happening; to rule out in advance",
+  meander:"to wander or wind about with no direct course",
+  hinder:"to slow down or get in the way of progress",
+  query:"a question or a request for information",
+  tributary:"a stream or smaller river that flows into a larger one",
+  validate:"to confirm, prove, or make officially acceptable",
+  abode:"the place where someone lives; a home or dwelling",
+  pedigree:"a record of ancestry or a line of descent",
+  constrict:"to make narrower or tighter; to squeeze",
+  detract:"to take away from the value or quality of something",
+  accolade:"an award or an expression of praise",
+  deduct:"to subtract or take an amount away from a total",
+  vague:"not clearly expressed or defined; unclear",
+  vignette:"a short, descriptive scene or literary sketch",
+  resist:"to withstand, oppose, or refuse to give in to",
+  futile:"pointless; incapable of producing a useful result",
+  hypothetical:"based on a supposed situation rather than a real one",
+  global:"relating to or covering the whole world",
+  meritorious:"deserving reward or praise",
+  plethora:"an excessive amount; an overabundance",
+  terse:"brief and to the point, sometimes bluntly so",
+  vigorous:"strong, energetic, and full of force"
+};
+function correctSynonymOf(word){ const v=VOCAB.find(x=>x[0]===word); return v?v[1][v[2]]:""; }
+function meaningOf(word){ return DEFS[word] || ("closest in meaning to “"+correctSynonymOf(word)+"”"); }
+
 function gradeEstimate(pct){
   if(pct>=88) return "≈ college level";
   if(pct>=78) return "≈ 12th grade";
@@ -769,6 +829,7 @@ function buildMissedItems(){
 function startMode(mode){
   hide("home");
   if(mode==="guide"){ show("guide"); window.scrollTo(0,0); return; }
+  if(mode==="writemissed"){ startWrite(); return; }
   if(mode==="rate"){ show("rate"); startRate(); return; }
   let items, seconds, title;
   if(mode==="vocab"){ items=buildVocabItems(20); seconds=8*60; title="Vocabulary"; }
@@ -825,12 +886,21 @@ function renderQ(){
   } else {
     html+=`<div class="qtext">${it.qtext}</div>`;
   }
+  const answered = it.kind==="vocab" && it.picked!=null; // vocab reveals on answer
   it.choices.forEach((c,i)=>{
-    const sel=it.picked===i?"sel":"";
-    html+=`<button class="choice ${sel}" data-i="${i}"><span class="k">${KEYS[i]}</span>${c}</button>`;
+    let cls = it.picked===i?"sel":"";
+    if(answered){
+      if(i===it.answer) cls="correct";
+      else if(i===it.picked) cls="wrong";
+    }
+    html+=`<button class="choice ${cls}" data-i="${i}"><span class="k">${KEYS[i]}</span>${c}</button>`;
   });
+  if(answered){
+    html+=`<div class="meaning"><b>${it.word}</b> — ${meaningOf(it.word)}</div>`;
+  }
   $("qBody").innerHTML=html;
   $("qBody").querySelectorAll(".choice").forEach(b=>{
+    if(answered) return; // lock vocab choices once answered so the reveal stays honest
     b.onclick=()=>{ it.picked=+b.dataset.i; renderQ(); };
   });
   $("prevBtn").disabled=quiz.idx===0;
@@ -871,6 +941,7 @@ function finishQuiz(){
       <div class="rq">${label}${it.kind==="comp"?": "+it.qtext:""}</div>
       <div class="${ok?'ra':'rx'}">${ok?"✓":"✗"} Your answer: ${your}</div>
       ${ok?"":`<div class="ra">✓ Correct: ${it.choices[it.answer]}</div>`}
+      ${it.kind==="vocab"?`<div class="note">meaning: ${meaningOf(it.word)}</div>`:""}
     </div>`;
   }).join("");
   const boxLeft=getMissed().length;
@@ -896,11 +967,76 @@ function finishQuiz(){
 }
 
 function backHome(){
-  ["quiz","results","rate"].forEach(hide);
+  ["quiz","results","rate","write"].forEach(hide);
   show("home");
   renderBest();
   window.scrollTo({top:0});
 }
+
+/* =========================================================
+   WRITE OUT MISSED WORDS — type each missed word to drill spelling
+   ========================================================= */
+let writeState=null;
+function startWrite(){
+  const words=shuffle([...getMissed()]);
+  if(!words.length){
+    alert("Your Missed Words box is empty — get some vocab wrong first, then come back and write them out.");
+    show("home"); return;
+  }
+  writeState={ words, idx:0 };
+  show("write"); window.scrollTo({top:0});
+  renderWrite();
+}
+function renderWrite(){
+  const ws=writeState;
+  if(ws.idx>=ws.words.length){ renderWriteDone(); return; }
+  const word=ws.words[ws.idx];
+  $("writeCount").textContent=`${ws.idx+1} / ${ws.words.length}`;
+  $("writeLeft").textContent=`${ws.words.length-ws.idx} to go`;
+  $("writeProg").style.width=(ws.idx/ws.words.length*100)+"%";
+  $("writeBody").innerHTML=`
+    <div class="card center">
+      <div class="qlabel">Write this word</div>
+      <div class="qword">${word}</div>
+      <div class="meaning" style="text-align:left">${meaningOf(word)}</div>
+    </div>
+    <input id="writeInput" class="writeInput" autocomplete="off" autocorrect="off"
+           autocapitalize="none" spellcheck="false" placeholder="type it out…" />
+    <div id="writeMsg" class="writeMsg"></div>
+    <button class="bigbtn" id="writeCheck">Check ✓</button>`;
+  const inp=$("writeInput"); inp.focus();
+  const submit=()=>{
+    const val=inp.value.trim().toLowerCase();
+    if(!val) return;
+    if(val===word.toLowerCase()){ ws.idx++; renderWrite(); }
+    else {
+      const msg=$("writeMsg");
+      msg.textContent="Not quite — check the spelling and write it again.";
+      msg.className="writeMsg bad";
+      inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake");
+      inp.select();
+    }
+  };
+  $("writeCheck").onclick=submit;
+  inp.onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); submit(); } };
+}
+function renderWriteDone(){
+  $("writeCount").textContent="";
+  $("writeLeft").textContent="done";
+  $("writeProg").style.width="100%";
+  const n=writeState.words.length;
+  $("writeBody").innerHTML=`
+    <div class="card center">
+      <div class="result-score">✍️</div>
+      <div class="result-grade">You wrote out all ${n} missed word${n===1?"":"s"}.</div>
+      <div class="note">Writing them by hand cements the spelling. Now open <b>📒 My Missed Words</b> to prove you remember what they mean.</div>
+    </div>
+    <button class="bigbtn" id="writeAgain">Write them again</button>
+    <button class="bigbtn ghost" id="writeHome" style="margin-top:10px">‹ Home</button>`;
+  $("writeAgain").onclick=startWrite;
+  $("writeHome").onclick=backHome;
+}
+$("writeQuit").onclick=()=>{ if(confirm("Quit writing practice?")) backHome(); };
 
 /* =========================================================
    READING RATE
@@ -1006,6 +1142,9 @@ function renderMissed(){
   const btn=$("missedBtn"), sub=$("missedSub");
   if(sub) sub.textContent = n ? `${n} word${n===1?"":"s"} to review — tap to quiz them` : "words you get wrong show up here";
   if(btn) btn.style.opacity = n ? "1" : ".55";
+  const wbtn=$("writeBtn"), wsub=$("writeSub");
+  if(wsub) wsub.textContent = n ? `write out all ${n} missed word${n===1?"":"s"} to drill the spelling` : "type each missed word out to drill the spelling";
+  if(wbtn) wbtn.style.opacity = n ? "1" : ".55";
 }
 
 document.querySelectorAll(".modeBtn").forEach(b=> b.onclick=()=>startMode(b.dataset.mode));
