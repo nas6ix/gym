@@ -99,6 +99,9 @@
     <button class="modeBtn" data-mode="exam" style="border-color:var(--accent);background:linear-gradient(135deg,rgba(77,141,255,.20),var(--panel2))">
       <span><b>🎯 Full Vocab Test</b><small>80 questions · 15-minute timer · real test format</small></span><span class="go">›</span>
     </button>
+    <button class="modeBtn" data-mode="challenge" style="border-color:var(--bad);background:linear-gradient(135deg,rgba(255,107,107,.18),var(--panel2))">
+      <span><b>🔥 Challenge Mode</b><small>40 hardest words · no hints or reveal · 9s each · scored cold</small></span><span class="go">›</span>
+    </button>
     <button class="modeBtn" data-mode="vocab">
       <span><b>Vocabulary</b><small>Pick the closest meaning · timed synonyms</small></span><span class="go">›</span>
     </button>
@@ -475,6 +478,128 @@ const VOCAB = [
   ["resist", ["give in","withstand","gather","polish","delay"], 1]
 ];
 
+/* =========================================================
+   ADVANCED WORD BANK — real-test difficulty, tricky distractors.
+   Correct answer is index 0; choices are shuffled at build time.
+   Used by every vocab mode, and favored by Challenge Mode.
+   ========================================================= */
+const HARD = [
+  ["aberration", ["deviation from the normal","strict standard","firm foundation","full agreement","steady rhythm"], 0],
+  ["abscond", ["flee secretly","openly confess","stay behind","negotiate calmly","gather slowly"], 0],
+  ["abstruse", ["hard to understand","perfectly obvious","brightly lit","widely loved","easily broken"], 0],
+  ["acerbic", ["sharp and bitter","warm and sweet","soft and gentle","dull and flat","calm and mild"], 0],
+  ["acquiesce", ["agree reluctantly","flatly refuse","argue loudly","act boldly","withdraw quietly"], 0],
+  ["admonish", ["warn or scold","warmly praise","fully ignore","kindly reward","quietly obey"], 0],
+  ["affable", ["friendly and easygoing","cold and hostile","gloomy and tense","stiff and rigid","shy and timid"], 0],
+  ["alacrity", ["brisk eagerness","heavy reluctance","deep sorrow","blank confusion","dull fatigue"], 0],
+  ["ameliorate", ["make better","make worse","leave unchanged","hide away","break apart"], 0],
+  ["anachronism", ["something out of its proper time","a repeated event","a loud disturbance","a strict rule","a small mistake"], 0],
+  ["antithesis", ["direct opposite","close copy","faint echo","rough draft","minor detail"], 0],
+  ["apathy", ["lack of interest","deep concern","open anger","quiet joy","sudden fear"], 0],
+  ["arbitrary", ["based on personal whim","carefully reasoned","strictly lawful","widely shared","plainly written"], 0],
+  ["arcane", ["known to only a few","common and familiar","cheerful and bright","strong and sturdy","quick and lively"], 0],
+  ["assuage", ["ease or soothe","stir up","make worse","conceal fully","delay again"], 0],
+  ["audacious", ["boldly daring","meekly timid","dull and flat","hollow and empty","brief and short"], 0],
+  ["austere", ["stern and plain","lavish and rich","cheerful and warm","gentle and soft","vague and unclear"], 0],
+  ["banal", ["dull and unoriginal","fresh and new","urgent and pressing","rich and lavish","brief and short"], 0],
+  ["belie", ["give a false impression of","openly confirm","clearly reveal","gather together","set aside"], 0],
+  ["cacophony", ["harsh clash of sounds","sweet melody","total silence","faint echo","steady beat"], 0],
+  ["capitulate", ["surrender","resist firmly","argue on","press forward","escape quietly"], 0],
+  ["castigate", ["criticize harshly","warmly praise","calmly ignore","gently reward","quietly accept"], 0],
+  ["caustic", ["bitingly sarcastic","soothing and mild","plain and dull","hollow and empty","shy and timid"], 0],
+  ["circumspect", ["cautious and watchful","reckless and rash","cheerful and open","hollow and empty","brief and short"], 0],
+  ["cogent", ["clear and convincing","weak and flimsy","vague and unclear","hollow and empty","dull and flat"], 0],
+  ["complacent", ["smugly self-satisfied","deeply anxious","genuinely humble","openly eager","quietly timid"], 0],
+  ["condone", ["overlook or forgive","harshly condemn","strictly punish","carefully gather","further delay"], 0],
+  ["conflagration", ["large destructive fire","gentle breeze","minor flood","small spark","still pond"], 0],
+  ["connote", ["suggest in addition","state plainly","flatly deny","gather up","hold back"], 0],
+  ["contrite", ["deeply sorry","openly defiant","overly proud","brightly cheerful","perfectly calm"], 0],
+  ["copious", ["plentiful","scarce","hollow","brief","rapid"], 0],
+  ["corroborate", ["confirm with evidence","flatly contradict","openly doubt","loosely gather","further delay"], 0],
+  ["credulous", ["too ready to believe","hard to convince","openly hostile","perfectly calm","brief and short"], 0],
+  ["cursory", ["hasty and shallow","slow and thorough","careful and deep","calm and steady","rich and full"], 0],
+  ["debacle", ["a total failure","a great triumph","a minor delay","a quiet moment","a fresh start"], 0],
+  ["decorum", ["proper behavior","wild disorder","plain speech","deep sorrow","sheer luck"], 0],
+  ["deference", ["respectful yielding","open defiance","cold anger","idle chatter","blind haste"], 0],
+  ["deleterious", ["harmful","helpful","hollow","brief","rapid"], 0],
+  ["deride", ["mock","admire","ignore","gather","delay"], 0],
+  ["desultory", ["aimless and unfocused","careful and methodical","urgent and pressing","cheerful and warm","brief and short"], 0],
+  ["diatribe", ["a bitter verbal attack","a warm tribute","a calm reply","a short note","an idle chat"], 0],
+  ["didactic", ["meant to instruct","meant to amuse","meant to conceal","meant to sell","meant to relax"], 0],
+  ["diffident", ["shy and unassertive","bold and forward","cheerful and warm","stiff and rigid","quick and lively"], 0],
+  ["dilatory", ["slow and delaying","prompt and quick","eager and keen","plain and dull","brief and short"], 0],
+  ["disparate", ["fundamentally different","exactly identical","closely similar","firmly joined","perfectly equal"], 0],
+  ["dogmatic", ["asserting opinion as fact","open to other views","shy and unsure","vague and loose","brief and short"], 0],
+  ["dubious", ["doubtful","certain","cheerful","sturdy","rapid"], 0],
+  ["ebullient", ["bubbling with enthusiasm","gloomy and low","perfectly calm","stiff and rigid","shy and timid"], 0],
+  ["eclectic", ["drawn from many sources","strictly uniform","narrow and limited","plain and dull","stiff and rigid"], 0],
+  ["efficacy", ["power to produce a result","total weakness","long delay","open doubt","sheer waste"], 0],
+  ["egregious", ["outstandingly bad","slightly off","mildly good","plainly average","quietly fine"], 0],
+  ["elicit", ["draw out","hold back","fully ignore","loosely gather","further delay"], 0],
+  ["empirical", ["based on observation","based on theory","based on hope","based on rumor","based on habit"], 0],
+  ["enervate", ["drain of energy","fill with energy","stir up","gather up","hold back"], 0],
+  ["ephemeral", ["short-lived","everlasting","enormous","ordinary","hidden"], 0],
+  ["equivocate", ["speak so as to mislead","speak plainly","stay silent","shout loudly","whisper softly"], 0],
+  ["erudite", ["deeply learned","plainly ignorant","cheerful and warm","stiff and rigid","quick and lively"], 0],
+  ["eschew", ["deliberately avoid","warmly embrace","actively seek","loosely gather","further delay"], 0],
+  ["exacerbate", ["make worse","give relief to","leave alone","gather up","hold back"], 0],
+  ["exemplary", ["serving as a model","merely average","clearly faulty","plain and dull","brief and short"], 0],
+  ["exonerate", ["free from blame","openly condemn","cast doubt on","loosely gather","further delay"], 0],
+  ["expedient", ["convenient and practical","strictly principled","slow and costly","plain and dull","vague and loose"], 0],
+  ["facetious", ["not meant to be serious","deeply sincere","coldly hostile","plainly factual","quietly sad"], 0],
+  ["fastidious", ["very hard to please","easily contented","plainly careless","shy and timid","brief and short"], 0],
+  ["fatuous", ["silly and pointless","wise and shrewd","urgent and pressing","plain and dull","brief and short"], 0],
+  ["fervent", ["intensely passionate","coolly indifferent","perfectly calm","plain and dull","brief and short"], 0],
+  ["flippant", ["lacking due seriousness","deeply respectful","openly anxious","plain and factual","brief and short"], 0],
+  ["garrulous", ["excessively talkative","utterly silent","short and terse","shy and quiet","calm and still"], 0],
+  ["germane", ["relevant","unrelated","hollow","rapid","brief"], 0],
+  ["grandiloquent", ["pompous in speech","plain-spoken","utterly silent","shy and timid","brief and short"], 0],
+  ["hackneyed", ["overused and stale","original and fresh","urgent and pressing","plain and dull","brief and short"], 0],
+  ["harangue", ["a long scolding speech","a brief friendly note","a calm discussion","a soft word of praise","an idle joke"], 0],
+  ["haughty", ["arrogantly proud","genuinely humble","cheerful and warm","shy and timid","brief and short"], 0],
+  ["iconoclast", ["an attacker of tradition","a strict traditionalist","a quiet follower","a minor official","a skilled artist"], 0],
+  ["impetuous", ["acting on impulse","cautious and careful","perfectly calm","plain and dull","brief and short"], 0],
+  ["inadvertent", ["unintentional","deliberate","hostile","cheerful","rapid"], 0],
+  ["incessant", ["never stopping","only occasional","short and brief","calm and still","rare and slight"], 0],
+  ["incorrigible", ["beyond reform","easily corrected","mild and gentle","shy and timid","brief and short"], 0],
+  ["indigenous", ["native to a place","foreign and imported","recent and new","rare and slight","hidden away"], 0],
+  ["indolent", ["lazy","hardworking","cheerful","rigid","rapid"], 0],
+  ["ingenuous", ["innocent and frank","sly and cunning","openly hostile","gloomy and low","brief and short"], 0],
+  ["inimical", ["hostile or harmful","friendly and warm","perfectly neutral","plain and dull","brief and short"], 0],
+  ["innocuous", ["harmless","dangerous","hollow","brief","rapid"], 0],
+  ["insidious", ["harmful in a gradual, hidden way","openly harmless","sudden and obvious","plain and dull","brief and short"], 0],
+  ["intransigent", ["refusing to compromise","easily flexible","shy and timid","cheerful and warm","brief and short"], 0],
+  ["irascible", ["easily angered","perfectly calm","cheerful and warm","shy and timid","brief and short"], 0],
+  ["juxtapose", ["place side by side","pull far apart","hide from view","loosely gather","further delay"], 0],
+  ["laconic", ["using very few words","extremely wordy","very loud","deeply sad","highly formal"], 0],
+  ["languid", ["lacking energy","full of energy","tense and strained","cheerful and warm","brief and short"], 0],
+  ["magnanimous", ["generous and forgiving","petty and spiteful","shy and timid","plain and dull","brief and short"], 0],
+  ["nefarious", ["extremely wicked","perfectly virtuous","plain and dull","shy and timid","brief and short"], 0],
+  ["obfuscate", ["make unclear on purpose","make plain","openly reveal","loosely gather","further delay"], 0],
+  ["obsequious", ["excessively eager to please","openly defiant","perfectly neutral","shy and timid","brief and short"], 0],
+  ["ostentatious", ["showy and flashy","plain and modest","shy and quiet","calm and still","brief and short"], 0],
+  ["paucity", ["a shortage","an overabundance","a firm rule","a loud noise","a fresh start"], 0],
+  ["pejorative", ["expressing disapproval","expressing praise","stating a plain fact","asking a question","giving a command"], 0],
+  ["perfunctory", ["done with little care","done with great care","done in a hurry to help","done out of love","done by force"], 0],
+  ["pragmatic", ["practical and realistic","dreamy and idealistic","shy and timid","plain and dull","brief and short"], 0],
+  ["precarious", ["dangerously insecure","perfectly stable","plain and dull","cheerful and warm","brief and short"], 0],
+  ["proclivity", ["a natural tendency","a strong dislike","a firm rule","a rare event","a fresh start"], 0],
+  ["prosaic", ["dull and ordinary","poetic and vivid","urgent and pressing","rich and lavish","brief and short"], 0],
+  ["quixotic", ["wildly idealistic","coldly practical","openly hostile","shy and timid","brief and short"], 0],
+  ["rancor", ["bitter resentment","warm goodwill","calm patience","idle chatter","sheer luck"], 0],
+  ["reticent", ["reserved and reluctant to speak","openly talkative","boldly forward","cheerful and warm","brief and short"], 0],
+  ["sanguine", ["cheerfully optimistic","gloomy and hopeless","coldly hostile","shy and timid","plain and dull"], 0],
+  ["spurious", ["false or fake","genuine and real","plain and dull","shy and timid","brief and short"], 0],
+  ["taciturn", ["saying little by nature","openly talkative","loud and boisterous","cheerful and warm","brief and short"], 0],
+  ["tenacious", ["holding firmly, persistent","easily giving up","shy and timid","plain and dull","brief and short"], 0],
+  ["ubiquitous", ["present everywhere","rare and scarce","hidden away","plain and dull","brief and short"], 0],
+  ["venerate", ["deeply respect","openly scorn","coldly ignore","loosely gather","further delay"], 0],
+  ["vindicate", ["clear of blame or doubt","openly accuse","harshly punish","loosely gather","further delay"], 0],
+  ["voracious", ["extremely hungry or eager","easily satisfied","perfectly calm","shy and timid","plain and dull"], 0]
+];
+const HARD_WORDS = new Set(HARD.map(e=>e[0]));
+HARD.forEach(e=>{ if(!VOCAB.some(v=>v[0]===e[0])) VOCAB.push(e); });
+
 const PASSAGES = [
   {
     title: "Foot Patrols",
@@ -799,6 +924,15 @@ function buildGuideItems(n){
     return { kind:"vocab", word, choices:order.map(o=>o.c), answer:order.findIndex(o=>o.i===ans), picked:null };
   });
 }
+/* Challenge Mode: hard words first, then fill from the rest of the bank */
+function buildChallengeItems(n){
+  const hard = shuffle(VOCAB.filter(v=>HARD_WORDS.has(v[0])));
+  const rest = shuffle(VOCAB.filter(v=>!HARD_WORDS.has(v[0])));
+  return hard.concat(rest).slice(0,n).map(([word,choices,ans])=>{
+    const order = shuffle(choices.map((c,i)=>({c,i})));
+    return { kind:"vocab", word, choices:order.map(o=>o.c), answer:order.findIndex(o=>o.i===ans), picked:null };
+  });
+}
 function buildCompItems(passages){
   const items=[];
   for(const p of passages){
@@ -834,6 +968,7 @@ function startMode(mode){
   let items, seconds, title;
   if(mode==="vocab"){ items=buildVocabItems(20); seconds=8*60; title="Vocabulary"; }
   else if(mode==="guidevocab"){ items=buildGuideItems(); seconds=Math.max(180, items.length*11); title="Study Guide Words"; }
+  else if(mode==="challenge"){ items=buildChallengeItems(40); seconds=40*9; title="Challenge Mode"; }
   else if(mode==="exam"){ items=buildVocabItems(80); seconds=15*60; title="Full Vocab Test"; }
   else if(mode==="comp"){ items=buildCompItems(shuffle(PASSAGES).slice(0,2)); seconds=12*60; title="Comprehension"; }
   else if(mode==="fullread"){
@@ -847,7 +982,7 @@ function startMode(mode){
     seconds=Math.max(120, items.length*20); title="Missed Words";
   }
   else { items=[...buildVocabItems(15), ...buildCompItems(shuffle(PASSAGES).slice(0,2))]; seconds=18*60; title="Full Set"; }
-  quiz={ mode,title,items,idx:0,seconds,left:seconds,timer:null };
+  quiz={ mode,title,items,idx:0,seconds,left:seconds,timer:null, noReveal: mode==="challenge" };
   show("quiz");
   tickStart();
   renderQ();
@@ -886,7 +1021,7 @@ function renderQ(){
   } else {
     html+=`<div class="qtext">${it.qtext}</div>`;
   }
-  const answered = it.kind==="vocab" && it.picked!=null; // vocab reveals on answer
+  const answered = it.kind==="vocab" && it.picked!=null && !quiz.noReveal; // vocab reveals on answer (off in Challenge Mode)
   it.choices.forEach((c,i)=>{
     let cls = it.picked===i?"sel":"";
     if(answered){
