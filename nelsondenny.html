@@ -100,7 +100,7 @@
       <span><b>🎯 Full Vocab Test</b><small>80 questions · 15-minute timer · real test format</small></span><span class="go">›</span>
     </button>
     <button class="modeBtn" data-mode="challenge" style="border-color:var(--bad);background:linear-gradient(135deg,rgba(255,107,107,.18),var(--panel2))">
-      <span><b>🔥 Challenge Mode</b><small>40 hardest words · no hints or reveal · 9s each · scored cold</small></span><span class="go">›</span>
+      <span><b>🔥 Challenge Mode</b><small>40 harder words · no hints · real 11-sec pace · scored cold</small></span><span class="go">›</span>
     </button>
     <button class="modeBtn" data-mode="vocab">
       <span><b>Vocabulary</b><small>Pick the closest meaning · timed synonyms</small></span><span class="go">›</span>
@@ -600,6 +600,19 @@ const HARD = [
 const HARD_WORDS = new Set(HARD.map(e=>e[0]));
 HARD.forEach(e=>{ if(!VOCAB.some(v=>v[0]===e[0])) VOCAB.push(e); });
 
+/* Keep difficulty true to the real test: drop words that sit above the
+   Nelson-Denny level (GRE-tier), and fold in documented real-style examples.
+   The Nelson-Denny draws from high-school & college textbook vocabulary. */
+const TOO_HARD = new Set(["abstruse","caustic","cogent","desultory","didactic","dilatory","equivocate","fatuous","grandiloquent","harangue","iconoclast","inimical","obfuscate","obsequious","pejorative","proclivity","quixotic"]);
+for(let i=VOCAB.length-1;i>=0;i--){ if(TOO_HARD.has(VOCAB[i][0])) VOCAB.splice(i,1); }
+TOO_HARD.forEach(w=>HARD_WORDS.delete(w));
+[
+  ["augment", ["increase","reduce","conceal","delay","gather"], 0],
+  ["deplorable", ["disgraceful","admirable","ordinary","cheerful","brief"], 0],
+  ["derision", ["mockery","praise","respect","silence","comfort"], 0],
+  ["desist", ["stop","continue","begin","gather","delay"], 0]
+].forEach(e=>{ if(!VOCAB.some(v=>v[0]===e[0])) VOCAB.push(e); });
+
 const PASSAGES = [
   {
     title: "Foot Patrols",
@@ -968,7 +981,7 @@ function startMode(mode){
   let items, seconds, title;
   if(mode==="vocab"){ items=buildVocabItems(20); seconds=8*60; title="Vocabulary"; }
   else if(mode==="guidevocab"){ items=buildGuideItems(); seconds=Math.max(180, items.length*11); title="Study Guide Words"; }
-  else if(mode==="challenge"){ items=buildChallengeItems(40); seconds=40*9; title="Challenge Mode"; }
+  else if(mode==="challenge"){ items=buildChallengeItems(40); seconds=items.length*11; title="Challenge Mode"; }
   else if(mode==="exam"){ items=buildVocabItems(80); seconds=15*60; title="Full Vocab Test"; }
   else if(mode==="comp"){ items=buildCompItems(shuffle(PASSAGES).slice(0,2)); seconds=12*60; title="Comprehension"; }
   else if(mode==="fullread"){
