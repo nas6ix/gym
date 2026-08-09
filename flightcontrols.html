@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1220">
+<title>Flight Controls Practice Test</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#141d2e; --panel2:#1d2942; --line:#2b3a58;
+    --text:#e8eef7; --muted:#93a2bd; --accent:#4d8dff; --good:#33d17a; --bad:#ff6b6b; --warn:#ffb02e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+  .wrap{max-width:640px;margin:0 auto;padding:20px 18px 60px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  header h1{font-size:22px}
+  header h1 span{color:var(--accent)}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
+  .modeBtn{width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:16px 18px;color:var(--text);cursor:pointer;margin-bottom:12px;transition:border-color .15s,transform .05s}
+  .modeBtn:hover{border-color:var(--accent)}
+  .modeBtn:active{transform:scale(.99)}
+  .modeBtn b{font-size:16px}
+  .modeBtn .d{display:block;color:var(--muted);font-size:13px;margin-top:3px}
+  .btn{display:inline-block;background:var(--accent);border:none;border-radius:12px;padding:12px 18px;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+  .btn:active{transform:scale(.98)}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+  .btn.warn{background:var(--warn);color:#1a1300}
+  .btn.good{background:var(--good);color:#062012}
+  .btn.bad{background:var(--bad);color:#2a0606}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .prog{height:8px;background:var(--panel2);border-radius:99px;overflow:hidden;margin-bottom:16px}
+  .prog>i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+  .qmeta{color:var(--muted);font-size:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+  .qtext{font-size:19px;font-weight:600;margin-bottom:16px}
+  .opt{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;color:var(--text);cursor:pointer;margin-bottom:10px;font-size:15px}
+  .opt:hover{border-color:var(--accent)}
+  .opt.correct{border-color:var(--good);background:rgba(51,209,122,.14)}
+  .opt.wrong{border-color:var(--bad);background:rgba(255,107,107,.14)}
+  .opt:disabled{cursor:default}
+  textarea{width:100%;min-height:110px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;color:var(--text);font-size:15px;font-family:inherit;resize:vertical}
+  textarea:focus{outline:none;border-color:var(--accent)}
+  .clue{background:rgba(77,141,255,.1);border:1px dashed var(--accent);border-radius:12px;padding:12px 14px;color:#bcd3ff;font-size:14px;margin:12px 0}
+  .answer{background:rgba(51,209,122,.1);border:1px solid var(--good);border-radius:12px;padding:14px 16px;margin:12px 0}
+  .answer .lbl{color:var(--good);font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+  .ref{color:var(--muted);font-size:12px;margin-top:6px}
+  .rec{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:12px 0;flex-wrap:wrap}
+  .dot{width:11px;height:11px;border-radius:99px;background:var(--muted)}
+  .dot.live{background:var(--bad);animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  .rec .t{font-size:13px;color:var(--muted);min-width:44px;font-variant-numeric:tabular-nums}
+  audio{height:34px;max-width:100%}
+  .recBtn{border:none;border-radius:99px;width:44px;height:44px;font-size:18px;cursor:pointer;background:var(--bad);color:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .recBtn.stop{background:var(--panel);border:1px solid var(--line)}
+  .big{font-size:46px;font-weight:800;text-align:center;margin:6px 0}
+  .center{text-align:center}
+  .missed{border-left:3px solid var(--bad);padding-left:12px;margin-bottom:14px}
+  .missed .q{font-weight:600}
+  .missed .a{color:var(--good);font-size:14px}
+  .backlink{color:var(--muted);font-size:14px;cursor:pointer;display:inline-block;margin-bottom:14px}
+  .backlink:hover{color:var(--text)}
+  .hint{color:var(--muted);font-size:13px;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Flight Controls <span>Practice</span></h1>
+    <span class="sub" id="count"></span>
+  </header>
+  <div class="sub">Aircraft flight controls &amp; rotorcraft — study set</div>
+  <div id="app"></div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {q:"What is the function of a vortex generator?",
+   a:"It is designed to delay or prevent separation of the boundary layer.",
+   clue:"Think about the thin layer of airflow clinging to the wing surface — the b____ l____.", ref:"JSAT 1-13"},
+  {q:"What are the three axes of an airplane?",
+   a:"Longitudinal, lateral, and vertical.",
+   clue:"One runs nose-to-tail, one wingtip-to-wingtip, and one straight up-and-down.", ref:"JSAT 1-23"},
+  {q:"What are the three primary flight controls of an aircraft?",
+   a:"The ailerons, elevator, and rudder.",
+   clue:"The surfaces that produce roll, pitch, and yaw.", ref:"JSAT 1-27"},
+  {q:"Name several secondary flight controls and describe their general purpose.",
+   a:"Secondary flight controls consist of various types of trim tabs such as balance tabs, anti-servo and servo tabs, and spring tabs. Their function is to assist the pilot in moving the controls and to trim the aircraft to fly hands-off.",
+   clue:"Various kinds of trim TABS — they help move the controls and let it fly hands-off.", ref:"JSAT 1-31"},
+  {q:"Name several types of auxiliary flight controls and describe their general purpose.",
+   a:"The auxiliary flight controls consist of the various high-lift devices used during low-speed flight such as leading and trailing edge flaps, slats, slots, speed brakes, etc.",
+   clue:"High-lift devices used during LOW-speed flight (flaps, slats, slots, speed brakes).", ref:"JSAT 1-33"},
+  {q:"What is a servo trim tab?",
+   a:"It is an auxiliary control, positioned by the movement of a cockpit control and designed to create aerodynamic forces to assist in moving a control surface.",
+   clue:"Positioned by a COCKPIT control; creates aero force to assist moving a surface.", ref:"JSAT 1-32"},
+  {q:"What is a spring tab?",
+   a:"It is an auxiliary control designed to aid the movement of a primary control at high speeds when control forces become too high.",
+   clue:"Aids a primary control at HIGH speeds when forces get too high.", ref:"JSAT 1-32"},
+  {q:"What is a balance trim tab?",
+   a:"It is an auxiliary control designed to create aerodynamic forces to assist in moving a control surface. The tab is positioned by a control rod connected to the fixed surface on the same side as the horn on the tab.",
+   clue:"Creates aero force to assist; positioned by a control ROD connected to the fixed surface, same side as the horn.", ref:"JSAT 1-32"},
+  {q:"What are the four most common types of high-lift devices?",
+   a:"Leading and trailing edge flaps, slats, and slots.",
+   clue:"Flaps (leading & trailing edge), plus s____ and s____.", ref:"JSAT 1-33"},
+  {q:"Describe some of the tools used to check control surface travel.",
+   a:"A universal propeller protractor or special control surface protractor.",
+   clue:"A type of PROTRACTOR.", ref:"JSAT 1-43"},
+  {q:"Name three mechanical methods by which flight control systems may be actuated.",
+   a:"Cables, push-pull rods, and torque tubes.",
+   clue:"Cables, r___, and t___.", ref:"JSAT 1-44"},
+  {q:"What is a fairlead?",
+   a:"It is a device to prevent a cable from rubbing on the aircraft structure.",
+   clue:"Keeps a cable from RUBBING on the structure.", ref:"JSAT 1-48"},
+  {q:"What are the most likely places for a control cable to wear or break?",
+   a:"Where the cables pass over pulleys.",
+   clue:"Where cables pass over p____.", ref:"JSAT 1-47"},
+  {q:"What information is required before a cable rigging chart can be used?",
+   a:"The ambient temperature and the cable size.",
+   clue:"The temperature and the cable ____.", ref:"JSAT 1-48"},
+  {q:"What is the function of a cable tension regulator?",
+   a:"It automatically adjusts the cable tension to compensate for expansion and contraction in the aircraft structure.",
+   clue:"Auto-adjusts tension for expansion and contraction of the structure.", ref:"JSAT 1-48"},
+  {q:"Describe the function of a rotorcraft collective pitch control.",
+   a:"The collective control causes each rotor blade to change its pitch angle by the same amount, thus increasing or decreasing the lift produced by the rotor.",
+   clue:"ALL blades change pitch by the SAME amount — changes total lift.", ref:"JSAT 1-71"},
+  {q:"Describe the function of a rotorcraft cyclic pitch control.",
+   a:"The cyclic control tilts the main rotor disc by changing the pitch angle of each rotor blade during its cycle of rotation, which causes the helicopter to move in the direction the rotor tilts.",
+   clue:"TILTS the rotor disc; each blade's pitch changes during its rotation.", ref:"JSAT 1-73"},
+  {q:"What mechanism is most commonly used to compensate for the torque produced by the main rotor of a helicopter?",
+   a:"The tail (or anti-torque) rotor.",
+   clue:"The ____ rotor.", ref:"JSAT 1-74"},
+  {q:"How is the amount of thrust produced by the tail rotor controlled?",
+   a:"By moving the foot pedals.",
+   clue:"By moving the foot ____.", ref:"JSAT 1-74"},
+  {q:"Why should control surfaces be locked when an aircraft is parked?",
+   a:"To prevent damage from the wind.",
+   clue:"To protect them from the ____.", ref:"JSGT 13-17"}
+];
+
+const app = document.getElementById('app');
+const countEl = document.getElementById('count');
+countEl.textContent = QUESTIONS.length + ' questions';
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* ---------------- HOME ---------------- */
+function home(){
+  stopRecording(true);
+  app.innerHTML = `
+    <button class="modeBtn" id="mMc">
+      <b>📝 Multiple-Choice Test</b>
+      <span class="d">All ${QUESTIONS.length} questions, shuffled. Pick the right answer, get scored at the end.</span>
+    </button>
+    <button class="modeBtn" id="mHard">
+      <b>✍️ Hard Mode — Written</b>
+      <span class="d">Type the full answer from memory. A clue is there if you're stuck. Record yourself and self-grade.</span>
+    </button>
+    <button class="modeBtn" id="mCards">
+      <b>🔁 Flashcards</b>
+      <span class="d">Flip through question &rarr; answer at your own pace.</span>
+    </button>
+    <button class="modeBtn" id="mBrowse">
+      <b>📖 Browse All</b>
+      <span class="d">Read every question and answer with page references.</span>
+    </button>`;
+  document.getElementById('mMc').onclick = startMC;
+  document.getElementById('mHard').onclick = startHard;
+  document.getElementById('mCards').onclick = startCards;
+  document.getElementById('mBrowse').onclick = browse;
+}
+
+function backBar(){
+  const b=document.createElement('div');
+  b.className='backlink';
+  b.textContent='← Back to menu';
+  b.onclick=home;
+  return b;
+}
+function progBar(i,n){
+  return `<div class="prog"><i style="width:${(i/n)*100}%"></i></div>`;
+}
+
+/* ---------------- MULTIPLE CHOICE ---------------- */
+let mc;
+function startMC(){
+  mc={order:shuffle(QUESTIONS.map((_,i)=>i)),pos:0,score:0,missed:[]};
+  renderMC();
+}
+function renderMC(){
+  if(mc.pos>=mc.order.length) return mcResult();
+  const q=QUESTIONS[mc.order[mc.pos]];
+  const distractors=shuffle(QUESTIONS.filter(x=>x!==q)).slice(0,3).map(x=>x.a);
+  const opts=shuffle([q.a,...distractors]);
+  app.innerHTML='';
+  app.appendChild(backBar());
+  const c=document.createElement('div');c.className='card';
+  c.innerHTML=progBar(mc.pos,mc.order.length)+
+    `<div class="qmeta">Question ${mc.pos+1} of ${mc.order.length} · Score ${mc.score}</div>
+     <div class="qtext">${esc(q.q)}</div><div id="opts"></div>`;
+  app.appendChild(c);
+  const box=c.querySelector('#opts');
+  opts.forEach(o=>{
+    const b=document.createElement('button');b.className='opt';b.textContent=o;
+    b.onclick=()=>{
+      const correct=o===q.a;
+      if(correct) mc.score++; else mc.missed.push(q);
+      box.querySelectorAll('.opt').forEach(el=>{
+        el.disabled=true;
+        if(el.textContent===q.a) el.classList.add('correct');
+        else if(el===b) el.classList.add('wrong');
+      });
+      const nx=document.createElement('button');nx.className='btn';nx.style.marginTop='10px';
+      nx.textContent=mc.pos+1>=mc.order.length?'See results':'Next question';
+      nx.onclick=()=>{mc.pos++;renderMC();};
+      box.appendChild(nx);
+      const ref=document.createElement('div');ref.className='ref';ref.textContent='Page: '+q.ref;
+      box.appendChild(ref);
+    };
+    box.appendChild(b);
+  });
+}
+function mcResult(){
+  const pct=Math.round(mc.score/mc.order.length*100);
+  app.innerHTML='';
+  const c=document.createElement('div');c.className='card center';
+  c.innerHTML=`<div class="qmeta">Test complete</div>
+    <div class="big" style="color:${pct>=80?'var(--good)':pct>=60?'var(--warn)':'var(--bad)'}">${pct}%</div>
+    <div>${mc.score} of ${mc.order.length} correct</div>`;
+  app.appendChild(c);
+  if(mc.missed.length){
+    const m=document.createElement('div');m.className='card';
+    m.innerHTML='<div class="qmeta">Review — missed</div>';
+    mc.missed.forEach(q=>{
+      const d=document.createElement('div');d.className='missed';
+      d.innerHTML=`<div class="q">${esc(q.q)}</div><div class="a">${esc(q.a)}</div>`;
+      m.appendChild(d);
+    });
+    app.appendChild(m);
+  }
+  const r=document.createElement('div');r.className='row';
+  const again=document.createElement('button');again.className='btn';again.textContent='Retake';again.onclick=startMC;
+  const menu=document.createElement('button');menu.className='btn ghost';menu.textContent='Menu';menu.onclick=home;
+  r.appendChild(again);r.appendChild(menu);app.appendChild(r);
+}
+
+/* ---------------- HARD (WRITTEN) MODE ---------------- */
+let hard;
+function startHard(){
+  hard={order:shuffle(QUESTIONS.map((_,i)=>i)),pos:0,got:0};
+  renderHard();
+}
+function renderHard(){
+  stopRecording(true);
+  if(hard.pos>=hard.order.length) return hardResult();
+  const q=QUESTIONS[hard.order[hard.pos]];
+  app.innerHTML='';
+  app.appendChild(backBar());
+  const c=document.createElement('div');c.className='card';
+  c.innerHTML=progBar(hard.pos,hard.order.length)+
+    `<div class="qmeta">Written ${hard.pos+1} of ${hard.order.length} · Got ${hard.got}</div>
+     <div class="qtext">${esc(q.q)}</div>
+     <textarea id="ta" placeholder="Write the full answer from memory…"></textarea>
+     <div class="hint">Type it out, then reveal to grade yourself honestly.</div>
+     <div id="clueBox"></div>
+     ${recWidget()}
+     <div class="row" style="margin-top:14px">
+       <button class="btn ghost" id="clueBtn">💡 Show clue</button>
+       <button class="btn" id="revealBtn">Reveal answer</button>
+     </div>
+     <div id="ansBox"></div>`;
+  app.appendChild(c);
+  wireRec(c);
+  c.querySelector('#clueBtn').onclick=()=>{
+    c.querySelector('#clueBox').innerHTML=`<div class="clue">💡 ${esc(q.clue)}</div>`;
+    c.querySelector('#clueBtn').disabled=true;
+  };
+  c.querySelector('#revealBtn').onclick=()=>{
+    const ansBox=c.querySelector('#ansBox');
+    ansBox.innerHTML=`<div class="answer"><div class="lbl">Answer</div>${esc(q.a)}<div class="ref">Page: ${q.ref}</div></div>
+      <div class="row">
+        <button class="btn good" id="gGot">✓ I got it</button>
+        <button class="btn bad" id="gMiss">✗ Review it</button>
+      </div>`;
+    c.querySelector('#revealBtn').disabled=true;
+    ansBox.querySelector('#gGot').onclick=()=>{hard.got++;hard.pos++;renderHard();};
+    ansBox.querySelector('#gMiss').onclick=()=>{hard.pos++;renderHard();};
+  };
+}
+function hardResult(){
+  const pct=Math.round(hard.got/hard.order.length*100);
+  app.innerHTML='';
+  const c=document.createElement('div');c.className='card center';
+  c.innerHTML=`<div class="qmeta">Written round complete</div>
+    <div class="big" style="color:${pct>=80?'var(--good)':pct>=60?'var(--warn)':'var(--bad)'}">${hard.got}/${hard.order.length}</div>
+    <div>self-graded "got it"</div>`;
+  app.appendChild(c);
+  const r=document.createElement('div');r.className='row';
+  const again=document.createElement('button');again.className='btn';again.textContent='Go again';again.onclick=startHard;
+  const menu=document.createElement('button');menu.className='btn ghost';menu.textContent='Menu';menu.onclick=home;
+  r.appendChild(again);r.appendChild(menu);app.appendChild(r);
+}
+
+/* ---------------- FLASHCARDS ---------------- */
+let cards;
+function startCards(){cards={order:shuffle(QUESTIONS.map((_,i)=>i)),pos:0,flip:false};renderCards();}
+function renderCards(){
+  stopRecording(true);
+  const q=QUESTIONS[cards.order[cards.pos]];
+  app.innerHTML='';
+  app.appendChild(backBar());
+  const c=document.createElement('div');c.className='card';
+  c.style.minHeight='220px';
+  c.innerHTML=progBar(cards.pos,cards.order.length)+
+    `<div class="qmeta">Card ${cards.pos+1} of ${cards.order.length}</div>`+
+    (cards.flip
+      ? `<div class="answer"><div class="lbl">Answer</div>${esc(q.a)}<div class="ref">Page: ${q.ref}</div></div>`
+      : `<div class="qtext" style="margin-top:8px">${esc(q.q)}</div><div class="hint">Tap “Flip” to see the answer.</div>`);
+  app.appendChild(c);
+  const r=document.createElement('div');r.className='row';
+  const flip=document.createElement('button');flip.className='btn';flip.textContent=cards.flip?'Question':'Flip';
+  flip.onclick=()=>{cards.flip=!cards.flip;renderCards();};
+  const prev=document.createElement('button');prev.className='btn ghost';prev.textContent='← Prev';
+  prev.disabled=cards.pos===0;prev.onclick=()=>{cards.pos--;cards.flip=false;renderCards();};
+  const next=document.createElement('button');next.className='btn ghost';next.textContent='Next →';
+  next.disabled=cards.pos>=cards.order.length-1;next.onclick=()=>{cards.pos++;cards.flip=false;renderCards();};
+  r.appendChild(flip);r.appendChild(prev);r.appendChild(next);app.appendChild(r);
+}
+
+/* ---------------- BROWSE ---------------- */
+function browse(){
+  stopRecording(true);
+  app.innerHTML='';
+  app.appendChild(backBar());
+  QUESTIONS.forEach((q,i)=>{
+    const c=document.createElement('div');c.className='card';
+    c.innerHTML=`<div class="qmeta">${i+1} · ${q.ref}</div>
+      <div class="qtext" style="font-size:16px">${esc(q.q)}</div>
+      <div class="answer" style="margin-bottom:0"><div class="lbl">Answer</div>${esc(q.a)}</div>`;
+    app.appendChild(c);
+  });
+}
+
+/* ---------------- VOICE RECORDING ---------------- */
+let mediaRecorder=null, recChunks=[], recTimer=null, recSeconds=0, recStream=null;
+function recWidget(){
+  return `<div class="rec">
+    <button type="button" class="recBtn" id="recBtn" title="Record">●</button>
+    <span class="dot" id="recDot"></span>
+    <span class="t" id="recTime">0:00</span>
+    <audio id="recAudio" controls style="display:none"></audio>
+    <span class="hint" id="recHint" style="margin-top:0">Record yourself saying the answer</span>
+  </div>`;
+}
+function wireRec(scope){
+  const btn=scope.querySelector('#recBtn');
+  if(!btn) return;
+  btn.onclick=()=>{ mediaRecorder&&mediaRecorder.state==='recording' ? stopRecording() : startRecording(scope); };
+}
+async function startRecording(scope){
+  const hint=scope.querySelector('#recHint');
+  if(!navigator.mediaDevices||!window.MediaRecorder){
+    hint.textContent='Recording not supported in this browser.';return;
+  }
+  try{
+    recStream=await navigator.mediaDevices.getUserMedia({audio:true});
+  }catch(e){
+    hint.textContent='Microphone blocked — allow mic access to record.';return;
+  }
+  recChunks=[];recSeconds=0;
+  mediaRecorder=new MediaRecorder(recStream);
+  mediaRecorder.ondataavailable=e=>{if(e.data.size)recChunks.push(e.data);};
+  mediaRecorder.onstop=()=>{
+    const blob=new Blob(recChunks,{type:mediaRecorder.mimeType||'audio/webm'});
+    const url=URL.createObjectURL(blob);
+    const au=scope.querySelector('#recAudio');
+    if(au){au.src=url;au.style.display='inline-block';}
+    if(hint)hint.textContent='Saved — play it back below.';
+  };
+  mediaRecorder.start();
+  const btn=scope.querySelector('#recBtn'),dot=scope.querySelector('#recDot'),tEl=scope.querySelector('#recTime');
+  btn.classList.add('stop');btn.textContent='■';dot.classList.add('live');hint.textContent='Recording… tap to stop';
+  recTimer=setInterval(()=>{recSeconds++;const m=recSeconds/60|0,s=recSeconds%60;tEl.textContent=m+':'+String(s).padStart(2,'0');},1000);
+}
+function stopRecording(silent){
+  if(recTimer){clearInterval(recTimer);recTimer=null;}
+  if(mediaRecorder&&mediaRecorder.state==='recording'){ try{mediaRecorder.stop();}catch(e){} }
+  if(recStream){recStream.getTracks().forEach(t=>t.stop());recStream=null;}
+  if(!silent){
+    const btn=document.getElementById('recBtn'),dot=document.getElementById('recDot');
+    if(btn){btn.classList.remove('stop');btn.textContent='●';}
+    if(dot)dot.classList.remove('live');
+  }
+  mediaRecorder=null;
+}
+
+home();
+</script>
+</body>
+</html>
