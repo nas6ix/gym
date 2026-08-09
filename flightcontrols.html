@@ -3,74 +3,236 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0b1220">
-<title>Flight Controls Practice Test</title>
-<style>
-  :root{
-    --bg:#0b1220; --panel:#141d2e; --panel2:#1d2942; --line:#2b3a58;
-    --text:#e8eef7; --muted:#93a2bd; --accent:#4d8dff; --good:#33d17a; --bad:#ff6b6b; --warn:#ffb02e;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
-  .wrap{max-width:640px;margin:0 auto;padding:20px 18px 60px}
-  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-  header h1{font-size:22px}
-  header h1 span{color:var(--accent)}
-  .sub{color:var(--muted);font-size:13px;margin-bottom:22px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
-  .modeBtn{width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:16px 18px;color:var(--text);cursor:pointer;margin-bottom:12px;transition:border-color .15s,transform .05s}
-  .modeBtn:hover{border-color:var(--accent)}
-  .modeBtn:active{transform:scale(.99)}
-  .modeBtn b{font-size:16px}
-  .modeBtn .d{display:block;color:var(--muted);font-size:13px;margin-top:3px}
-  .btn{display:inline-block;background:var(--accent);border:none;border-radius:12px;padding:12px 18px;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
-  .btn:active{transform:scale(.98)}
-  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
-  .btn.warn{background:var(--warn);color:#1a1300}
-  .btn.good{background:var(--good);color:#062012}
-  .btn.bad{background:var(--bad);color:#2a0606}
-  .btn:disabled{opacity:.5;cursor:not-allowed}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .prog{height:8px;background:var(--panel2);border-radius:99px;overflow:hidden;margin-bottom:16px}
-  .prog>i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
-  .qmeta{color:var(--muted);font-size:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
-  .qtext{font-size:19px;font-weight:600;margin-bottom:16px}
-  .opt{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;color:var(--text);cursor:pointer;margin-bottom:10px;font-size:15px}
-  .opt:hover{border-color:var(--accent)}
-  .opt.correct{border-color:var(--good);background:rgba(51,209,122,.14)}
-  .opt.wrong{border-color:var(--bad);background:rgba(255,107,107,.14)}
-  .opt:disabled{cursor:default}
-  textarea{width:100%;min-height:110px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;color:var(--text);font-size:15px;font-family:inherit;resize:vertical}
-  textarea:focus{outline:none;border-color:var(--accent)}
-  .clue{background:rgba(77,141,255,.1);border:1px dashed var(--accent);border-radius:12px;padding:12px 14px;color:#bcd3ff;font-size:14px;margin:12px 0}
-  .answer{background:rgba(51,209,122,.1);border:1px solid var(--good);border-radius:12px;padding:14px 16px;margin:12px 0}
-  .answer .lbl{color:var(--good);font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-  .ref{color:var(--muted);font-size:12px;margin-top:6px}
-  .rec{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:12px 0;flex-wrap:wrap}
-  .dot{width:11px;height:11px;border-radius:99px;background:var(--muted)}
-  .dot.live{background:var(--bad);animation:pulse 1s infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
-  .rec .t{font-size:13px;color:var(--muted);min-width:44px;font-variant-numeric:tabular-nums}
-  audio{height:34px;max-width:100%}
-  .recBtn{border:none;border-radius:99px;width:44px;height:44px;font-size:18px;cursor:pointer;background:var(--bad);color:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
-  .recBtn.stop{background:var(--panel);border:1px solid var(--line)}
-  .big{font-size:46px;font-weight:800;text-align:center;margin:6px 0}
-  .center{text-align:center}
-  .missed{border-left:3px solid var(--bad);padding-left:12px;margin-bottom:14px}
-  .missed .q{font-weight:600}
-  .missed .a{color:var(--good);font-size:14px}
-  .backlink{color:var(--muted);font-size:14px;cursor:pointer;display:inline-block;margin-bottom:14px}
-  .backlink:hover{color:var(--text)}
-  .hint{color:var(--muted);font-size:13px;margin-top:4px}
-</style>
+<meta name="theme-color" content="#191814">
+<title>Flight Controls — Practice Test</title>
 </head>
 <body>
+<style>
+  :root{
+    --ground:#F5F2EA; --panel:#FFFFFF; --panel-2:#EDE9DE;
+    --line:#D8D2C2; --line-strong:#B7AF9A;
+    --text:#1F1D17; --muted:#6E6754;
+    --accent:#A4650A; --accent-soft:rgba(164,101,10,.10);
+    --good:#3F7A32; --good-soft:rgba(63,122,50,.10);
+    --bad:#A63A28; --bad-soft:rgba(166,58,40,.10);
+    --shadow:0 1px 2px rgba(31,29,23,.06);
+
+    --display:"Arial Narrow","Helvetica Neue Condensed","Liberation Sans Narrow",Arial,sans-serif;
+    --body:Georgia,"Iowan Old Style","Times New Roman",serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#191814; --panel:#211F1A; --panel-2:#2A2721;
+      --line:#38342B; --line-strong:#4E4838;
+      --text:#F0EBDF; --muted:#A2997F;
+      --accent:#E9A93C; --accent-soft:rgba(233,169,60,.12);
+      --good:#86B96A; --good-soft:rgba(134,185,106,.13);
+      --bad:#E4705A; --bad-soft:rgba(228,112,90,.13);
+      --shadow:0 1px 2px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#191814; --panel:#211F1A; --panel-2:#2A2721;
+    --line:#38342B; --line-strong:#4E4838;
+    --text:#F0EBDF; --muted:#A2997F;
+    --accent:#E9A93C; --accent-soft:rgba(233,169,60,.12);
+    --good:#86B96A; --good-soft:rgba(134,185,106,.13);
+    --bad:#E4705A; --bad-soft:rgba(228,112,90,.13);
+    --shadow:0 1px 2px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ground); color:var(--text);
+    font-family:var(--body); font-size:16px; line-height:1.6;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:680px; margin:0 auto; padding:26px 20px 72px; display:flex; flex-direction:column; gap:20px}
+
+  /* ---- header placard ---- */
+  .masthead{display:flex; flex-direction:column; gap:10px}
+  .mast-top{display:flex; align-items:center; gap:12px}
+  .mark{width:72px; height:24px; color:var(--line-strong); flex:0 0 auto}
+  h1{
+    font-family:var(--display); font-weight:700; font-size:30px; line-height:1;
+    text-transform:uppercase; letter-spacing:.07em; margin:0;
+  }
+  .mast-rule{height:2px; background:var(--accent)}
+  .mast-meta{
+    display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    font-family:var(--mono); font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted);
+  }
+
+  /* ---- shared surfaces ---- */
+  .panel{
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:4px; padding:20px; box-shadow:var(--shadow);
+  }
+  .stack{display:flex; flex-direction:column; gap:14px}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+
+  .label{
+    font-family:var(--mono); font-size:11px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--muted);
+    font-variant-numeric:tabular-nums;
+  }
+  .label.strong{color:var(--text)}
+
+  /* ---- buttons ---- */
+  .btn{
+    font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+    border:1px solid var(--accent); background:var(--accent); color:var(--ground);
+    padding:11px 16px; border-radius:3px; cursor:pointer; font-weight:600;
+  }
+  .btn.quiet{background:transparent; color:var(--text); border-color:var(--line-strong)}
+  .btn.affirm{background:var(--good); border-color:var(--good); color:var(--ground)}
+  .btn.deny{background:var(--bad); border-color:var(--bad); color:var(--ground)}
+  .btn:disabled{opacity:.45; cursor:not-allowed}
+  .btn:hover:not(:disabled){filter:brightness(1.07)}
+  .btn.quiet:hover:not(:disabled){border-color:var(--accent); color:var(--accent); filter:none}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+  .back{
+    font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted); background:none; border:none; padding:0; cursor:pointer; align-self:flex-start;
+  }
+  .back:hover{color:var(--accent)}
+
+  /* ---- mode list ---- */
+  .modes{display:flex; flex-direction:column; gap:0; border-top:1px solid var(--line)}
+  .mode{
+    display:grid; grid-template-columns:1fr auto; gap:4px 14px; align-items:baseline;
+    width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--line);
+    padding:18px 4px; cursor:pointer; color:var(--text); font-family:var(--body);
+    transition:background-color .12s, padding-left .12s;
+  }
+  .mode:hover{background:var(--accent-soft); padding-left:10px}
+  .mode-name{
+    font-family:var(--display); text-transform:uppercase; letter-spacing:.05em;
+    font-size:20px; font-weight:700; line-height:1.1;
+  }
+  .mode:hover .mode-name{color:var(--accent)}
+  .mode-desc{grid-column:1/-1; font-size:14.5px; color:var(--muted); line-height:1.5}
+  .mode-tag{
+    font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--accent); border:1px solid var(--accent); border-radius:2px; padding:3px 7px; white-space:nowrap;
+  }
+
+  /* ---- progress ---- */
+  .prog{height:2px; background:var(--line); overflow:hidden}
+  .prog > i{display:block; height:100%; background:var(--accent); width:0; transition:width .3s ease}
+
+  .qhead{display:flex; justify-content:space-between; gap:12px; margin-bottom:14px}
+  .qtext{font-size:21px; line-height:1.4; margin:0 0 18px; text-wrap:balance}
+
+  /* ---- options ---- */
+  .opts{display:flex; flex-direction:column; gap:8px}
+  .opt{
+    display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:start;
+    width:100%; text-align:left; font-family:var(--body); font-size:15.5px; line-height:1.5;
+    background:var(--panel-2); color:var(--text);
+    border:1px solid var(--line); border-left:3px solid var(--line-strong);
+    border-radius:3px; padding:13px 15px; cursor:pointer; transition:border-color .12s, background-color .12s;
+  }
+  .opt:hover:not(:disabled){border-color:var(--accent); border-left-color:var(--accent)}
+  .opt:disabled{cursor:default}
+  .opt .key{
+    font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.05em;
+    color:var(--muted); border:1px solid var(--line-strong); border-radius:2px;
+    width:22px; height:22px; display:flex; align-items:center; justify-content:center; margin-top:1px;
+  }
+  .opt.correct{border-color:var(--good); border-left-color:var(--good); background:var(--good-soft)}
+  .opt.correct .key{color:var(--good); border-color:var(--good)}
+  .opt.wrong{border-color:var(--bad); border-left-color:var(--bad); background:var(--bad-soft)}
+  .opt.wrong .key{color:var(--bad); border-color:var(--bad)}
+
+  .ref{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-top:10px}
+
+  /* ---- answer / clue blocks ---- */
+  .answer{border-left:3px solid var(--good); background:var(--good-soft); padding:14px 16px; border-radius:0 3px 3px 0}
+  .answer .label{color:var(--good)}
+  .answer p{margin:6px 0 0; font-size:15.5px; line-height:1.55}
+  .clue{border-left:3px solid var(--accent); background:var(--accent-soft); padding:14px 16px; border-radius:0 3px 3px 0}
+  .clue .label{color:var(--accent)}
+  .clue p{margin:6px 0 0; font-size:15px; line-height:1.55}
+
+  textarea{
+    width:100%; min-height:130px; resize:vertical;
+    background:var(--panel-2); color:var(--text);
+    border:1px solid var(--line); border-left:3px solid var(--line-strong); border-radius:3px;
+    padding:14px; font-family:var(--body); font-size:16px; line-height:1.55;
+  }
+  textarea:focus{outline:none; border-color:var(--accent); border-left-color:var(--accent)}
+  .note{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--muted); line-height:1.5}
+
+  /* ---- key term check ---- */
+  .terms{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
+  .term{
+    font-family:var(--mono); font-size:11px; letter-spacing:.04em; padding:4px 8px;
+    border:1px solid var(--line-strong); border-radius:2px; color:var(--muted);
+  }
+  .term.hit{color:var(--good); border-color:var(--good); background:var(--good-soft)}
+
+  /* ---- recorder ---- */
+  .rec{
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    border:1px solid var(--line); border-radius:3px; padding:11px 13px; background:var(--panel-2);
+  }
+  .recBtn{
+    width:34px; height:34px; flex:0 0 auto; border-radius:50%; cursor:pointer;
+    border:1px solid var(--line-strong); background:var(--panel);
+    display:flex; align-items:center; justify-content:center; padding:0;
+  }
+  .recBtn .glyph{width:13px; height:13px; border-radius:50%; background:var(--bad); transition:border-radius .15s, width .15s, height .15s}
+  .recBtn[aria-pressed="true"] .glyph{border-radius:1px; width:11px; height:11px}
+  .recBtn:hover{border-color:var(--bad)}
+  .meter{flex:1 1 90px; min-width:70px; height:4px; background:var(--line); border-radius:2px; overflow:hidden}
+  .meter > i{display:block; height:100%; width:0; background:var(--good)}
+  .rectime{font-family:var(--mono); font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; min-width:38px}
+  .rec audio{height:32px; max-width:100%; flex:1 1 190px}
+
+  /* ---- results ---- */
+  .score{font-family:var(--display); font-size:78px; line-height:.9; letter-spacing:.02em; font-variant-numeric:tabular-nums; margin:6px 0 2px}
+  .miss{border-left:3px solid var(--bad); padding:2px 0 2px 14px; display:flex; flex-direction:column; gap:3px}
+  .miss .mq{font-size:16px; line-height:1.4}
+  .miss .ma{font-size:14.5px; color:var(--muted); line-height:1.5}
+
+  /* ---- browse ---- */
+  .entry{border-bottom:1px solid var(--line); padding:16px 0; display:flex; flex-direction:column; gap:8px}
+  .entry:last-child{border-bottom:none}
+  .entry-head{display:flex; justify-content:space-between; gap:12px; align-items:baseline}
+  .entry .eq{font-size:17px; line-height:1.4; font-weight:700}
+  .entry .ea{font-size:15.5px; line-height:1.55; margin:0}
+
+  .card-face{min-height:150px; display:flex; flex-direction:column; justify-content:center}
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important; animation:none !important}
+  }
+  @media (max-width:420px){
+    h1{font-size:25px}
+    .score{font-size:62px}
+    .wrap{padding:20px 16px 60px}
+  }
+</style>
+
 <div class="wrap">
-  <header>
-    <h1>Flight Controls <span>Practice</span></h1>
-    <span class="sub" id="count"></span>
-  </header>
-  <div class="sub">Aircraft flight controls &amp; rotorcraft — study set</div>
+  <div class="masthead">
+    <div class="mast-top">
+      <svg class="mark" viewBox="0 0 72 24" aria-hidden="true" focusable="false">
+        <path d="M3 13C10 6 16 5 24 6C34 7 40 8 44 9L44 15C38 16 32 17 24 17C14 17 8 16 3 13Z" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M44 9L68 18L44 15Z" fill="var(--accent)"/>
+      </svg>
+      <h1>Flight Controls</h1>
+    </div>
+    <div class="mast-rule"></div>
+    <div class="mast-meta">
+      <span>Oral &amp; practical prep</span>
+      <span id="itemCount"></span>
+    </div>
+  </div>
   <div id="app"></div>
 </div>
 
@@ -78,321 +240,474 @@
 const QUESTIONS = [
   {q:"What is the function of a vortex generator?",
    a:"It is designed to delay or prevent separation of the boundary layer.",
-   clue:"Think about the thin layer of airflow clinging to the wing surface — the b____ l____.", ref:"JSAT 1-13"},
+   clue:"Think about the thin layer of air clinging to the wing surface — the b______ l____ — and what a vortex generator does to keep it attached.",
+   keys:["delay","separation","boundary layer"], ref:"JSAT 1-13"},
+
   {q:"What are the three axes of an airplane?",
    a:"Longitudinal, lateral, and vertical.",
-   clue:"One runs nose-to-tail, one wingtip-to-wingtip, and one straight up-and-down.", ref:"JSAT 1-23"},
+   clue:"One runs nose to tail, one wingtip to wingtip, and one straight up and down.",
+   keys:["longitudinal","lateral","vertical"], ref:"JSAT 1-23"},
+
   {q:"What are the three primary flight controls of an aircraft?",
    a:"The ailerons, elevator, and rudder.",
-   clue:"The surfaces that produce roll, pitch, and yaw.", ref:"JSAT 1-27"},
+   clue:"The surfaces that produce roll, pitch, and yaw — in that order.",
+   keys:["aileron","elevator","rudder"], ref:"JSAT 1-27"},
+
   {q:"Name several secondary flight controls and describe their general purpose.",
    a:"Secondary flight controls consist of various types of trim tabs such as balance tabs, anti-servo and servo tabs, and spring tabs. Their function is to assist the pilot in moving the controls and to trim the aircraft to fly hands-off.",
-   clue:"Various kinds of trim TABS — they help move the controls and let it fly hands-off.", ref:"JSAT 1-31"},
+   clue:"They are all kinds of TABS. Name the four types, then say what they do for the pilot's control forces and for hands-off flight.",
+   keys:["trim tab","balance","servo","spring","hands off"], ref:"JSAT 1-31"},
+
   {q:"Name several types of auxiliary flight controls and describe their general purpose.",
    a:"The auxiliary flight controls consist of the various high-lift devices used during low-speed flight such as leading and trailing edge flaps, slats, slots, speed brakes, etc.",
-   clue:"High-lift devices used during LOW-speed flight (flaps, slats, slots, speed brakes).", ref:"JSAT 1-33"},
+   clue:"High-lift devices used during LOW-speed flight. List at least four of them.",
+   keys:["high lift","flap","slat","slot","speed brake"], ref:"JSAT 1-33"},
+
   {q:"What is a servo trim tab?",
    a:"It is an auxiliary control, positioned by the movement of a cockpit control and designed to create aerodynamic forces to assist in moving a control surface.",
-   clue:"Positioned by a COCKPIT control; creates aero force to assist moving a surface.", ref:"JSAT 1-32"},
+   clue:"What positions it? A cockpit control. What does it then create, and what does that do?",
+   keys:["cockpit","aerodynamic","assist","control surface"], ref:"JSAT 1-32"},
+
   {q:"What is a spring tab?",
    a:"It is an auxiliary control designed to aid the movement of a primary control at high speeds when control forces become too high.",
-   clue:"Aids a primary control at HIGH speeds when forces get too high.", ref:"JSAT 1-32"},
+   clue:"It only earns its keep at one end of the speed range — where control forces get too heavy.",
+   keys:["primary control","high speed","forces"], ref:"JSAT 1-32"},
+
   {q:"What is a balance trim tab?",
    a:"It is an auxiliary control designed to create aerodynamic forces to assist in moving a control surface. The tab is positioned by a control rod connected to the fixed surface on the same side as the horn on the tab.",
-   clue:"Creates aero force to assist; positioned by a control ROD connected to the fixed surface, same side as the horn.", ref:"JSAT 1-32"},
+   clue:"Same purpose as a servo tab, but the rigging is the tell: a control rod to the FIXED surface, on the same side as the horn.",
+   keys:["aerodynamic","assist","control rod","fixed surface","horn"], ref:"JSAT 1-32"},
+
   {q:"What are the four most common types of high-lift devices?",
    a:"Leading and trailing edge flaps, slats, and slots.",
-   clue:"Flaps (leading & trailing edge), plus s____ and s____.", ref:"JSAT 1-33"},
+   clue:"Flaps in two places, plus s____ and s____.",
+   keys:["leading","trailing","flap","slat","slot"], ref:"JSAT 1-33"},
+
   {q:"Describe some of the tools used to check control surface travel.",
    a:"A universal propeller protractor or special control surface protractor.",
-   clue:"A type of PROTRACTOR.", ref:"JSAT 1-43"},
+   clue:"You are measuring an angle, so the tool is a type of p_________ — name both kinds.",
+   keys:["protractor","propeller"], ref:"JSAT 1-43"},
+
   {q:"Name three mechanical methods by which flight control systems may be actuated.",
    a:"Cables, push-pull rods, and torque tubes.",
-   clue:"Cables, r___, and t___.", ref:"JSAT 1-44"},
+   clue:"One pulls, one pushes and pulls, and one twists.",
+   keys:["cable","push pull rod","torque tube"], ref:"JSAT 1-44"},
+
   {q:"What is a fairlead?",
    a:"It is a device to prevent a cable from rubbing on the aircraft structure.",
-   clue:"Keeps a cable from RUBBING on the structure.", ref:"JSAT 1-48"},
+   clue:"It guides a cable, and its whole job is to stop one kind of contact.",
+   keys:["cable","rubbing","structure"], ref:"JSAT 1-48"},
+
   {q:"What are the most likely places for a control cable to wear or break?",
    a:"Where the cables pass over pulleys.",
-   clue:"Where cables pass over p____.", ref:"JSAT 1-47"},
+   clue:"Wherever the cable is forced to bend as it runs.",
+   keys:["pulley"], ref:"JSAT 1-47"},
+
   {q:"What information is required before a cable rigging chart can be used?",
    a:"The ambient temperature and the cable size.",
-   clue:"The temperature and the cable ____.", ref:"JSAT 1-48"},
+   clue:"Two things: one you read off a thermometer, one you read off the cable.",
+   keys:["temperature","cable size"], ref:"JSAT 1-48"},
+
   {q:"What is the function of a cable tension regulator?",
    a:"It automatically adjusts the cable tension to compensate for expansion and contraction in the aircraft structure.",
-   clue:"Auto-adjusts tension for expansion and contraction of the structure.", ref:"JSAT 1-48"},
+   clue:"It works automatically, and it is fighting what temperature does to the airframe.",
+   keys:["tension","expansion","contraction","structure"], ref:"JSAT 1-48"},
+
   {q:"Describe the function of a rotorcraft collective pitch control.",
    a:"The collective control causes each rotor blade to change its pitch angle by the same amount, thus increasing or decreasing the lift produced by the rotor.",
-   clue:"ALL blades change pitch by the SAME amount — changes total lift.", ref:"JSAT 1-71"},
+   clue:"The name is the answer: every blade changes pitch collectively — by the same amount. What does that change?",
+   keys:["pitch angle","same amount","lift"], ref:"JSAT 1-71"},
+
   {q:"Describe the function of a rotorcraft cyclic pitch control.",
    a:"The cyclic control tilts the main rotor disc by changing the pitch angle of each rotor blade during its cycle of rotation, which causes the helicopter to move in the direction the rotor tilts.",
-   clue:"TILTS the rotor disc; each blade's pitch changes during its rotation.", ref:"JSAT 1-73"},
+   clue:"Blade pitch changes during each cycle of rotation. What does that do to the rotor disc, and then to the helicopter?",
+   keys:["tilt","rotor disc","pitch angle","direction"], ref:"JSAT 1-73"},
+
   {q:"What mechanism is most commonly used to compensate for the torque produced by the main rotor of a helicopter?",
    a:"The tail (or anti-torque) rotor.",
-   clue:"The ____ rotor.", ref:"JSAT 1-74"},
+   clue:"It is mounted at the back, and its other name says exactly what it opposes.",
+   keys:["tail rotor","anti torque"], ref:"JSAT 1-74"},
+
   {q:"How is the amount of thrust produced by the tail rotor controlled?",
    a:"By moving the foot pedals.",
-   clue:"By moving the foot ____.", ref:"JSAT 1-74"},
+   clue:"Not with a hand — with the other set of limbs.",
+   keys:["pedal"], ref:"JSAT 1-74"},
+
   {q:"Why should control surfaces be locked when an aircraft is parked?",
    a:"To prevent damage from the wind.",
-   clue:"To protect them from the ____.", ref:"JSGT 13-17"}
+   clue:"Think about what moves a free control surface when nobody is in the cockpit.",
+   keys:["damage","wind"], ref:"JSGT 13-17"}
 ];
 
-const app = document.getElementById('app');
-const countEl = document.getElementById('count');
-countEl.textContent = QUESTIONS.length + ' questions';
+const app = document.getElementById("app");
+document.getElementById("itemCount").textContent = QUESTIONS.length + " items";
 
-function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+const LETTERS = ["A","B","C","D"];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const el = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
+const norm = s => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
-/* ---------------- HOME ---------------- */
-function home(){
-  stopRecording(true);
-  app.innerHTML = `
-    <button class="modeBtn" id="mMc">
-      <b>📝 Multiple-Choice Test</b>
-      <span class="d">All ${QUESTIONS.length} questions, shuffled. Pick the right answer, get scored at the end.</span>
-    </button>
-    <button class="modeBtn" id="mHard">
-      <b>✍️ Hard Mode — Written</b>
-      <span class="d">Type the full answer from memory. A clue is there if you're stuck. Record yourself and self-grade.</span>
-    </button>
-    <button class="modeBtn" id="mCards">
-      <b>🔁 Flashcards</b>
-      <span class="d">Flip through question &rarr; answer at your own pace.</span>
-    </button>
-    <button class="modeBtn" id="mBrowse">
-      <b>📖 Browse All</b>
-      <span class="d">Read every question and answer with page references.</span>
-    </button>`;
-  document.getElementById('mMc').onclick = startMC;
-  document.getElementById('mHard').onclick = startHard;
-  document.getElementById('mCards').onclick = startCards;
-  document.getElementById('mBrowse').onclick = browse;
-}
-
-function backBar(){
-  const b=document.createElement('div');
-  b.className='backlink';
-  b.textContent='← Back to menu';
-  b.onclick=home;
+function backButton(){
+  const b = el("button", "back", "&larr; All modes");
+  b.type = "button";
+  b.onclick = home;
   return b;
 }
-function progBar(i,n){
-  return `<div class="prog"><i style="width:${(i/n)*100}%"></i></div>`;
+function progress(done, total){
+  return `<div class="prog" role="progressbar" aria-valuenow="${done}" aria-valuemin="0" aria-valuemax="${total}"><i style="width:${(done / total) * 100}%"></i></div>`;
 }
 
-/* ---------------- MULTIPLE CHOICE ---------------- */
-let mc;
-function startMC(){
-  mc={order:shuffle(QUESTIONS.map((_,i)=>i)),pos:0,score:0,missed:[]};
-  renderMC();
-}
-function renderMC(){
-  if(mc.pos>=mc.order.length) return mcResult();
-  const q=QUESTIONS[mc.order[mc.pos]];
-  const distractors=shuffle(QUESTIONS.filter(x=>x!==q)).slice(0,3).map(x=>x.a);
-  const opts=shuffle([q.a,...distractors]);
-  app.innerHTML='';
-  app.appendChild(backBar());
-  const c=document.createElement('div');c.className='card';
-  c.innerHTML=progBar(mc.pos,mc.order.length)+
-    `<div class="qmeta">Question ${mc.pos+1} of ${mc.order.length} · Score ${mc.score}</div>
-     <div class="qtext">${esc(q.q)}</div><div id="opts"></div>`;
-  app.appendChild(c);
-  const box=c.querySelector('#opts');
-  opts.forEach(o=>{
-    const b=document.createElement('button');b.className='opt';b.textContent=o;
-    b.onclick=()=>{
-      const correct=o===q.a;
-      if(correct) mc.score++; else mc.missed.push(q);
-      box.querySelectorAll('.opt').forEach(el=>{
-        el.disabled=true;
-        if(el.textContent===q.a) el.classList.add('correct');
-        else if(el===b) el.classList.add('wrong');
-      });
-      const nx=document.createElement('button');nx.className='btn';nx.style.marginTop='10px';
-      nx.textContent=mc.pos+1>=mc.order.length?'See results':'Next question';
-      nx.onclick=()=>{mc.pos++;renderMC();};
-      box.appendChild(nx);
-      const ref=document.createElement('div');ref.className='ref';ref.textContent='Page: '+q.ref;
-      box.appendChild(ref);
-    };
-    box.appendChild(b);
+/* ============ HOME ============ */
+function home(){
+  teardownRecorder();
+  app.innerHTML = "";
+  const list = el("div", "modes");
+  const modes = [
+    ["Multiple-choice test", "All 20 items in random order, four answers each. Scored at the end with everything you missed.", "Scored", startTest],
+    ["Written — hard mode", "Type the full answer from memory. A clue is one tap away, and you can record yourself saying it out loud.", "Hard", startWritten],
+    ["Flashcards", "Question on the front, answer on the back. Move at your own pace.", "Self-paced", startCards],
+    ["Full question list", "Every question and answer with its page reference, for reading straight through.", "Reference", browse]
+  ];
+  modes.forEach(([name, desc, tag, fn]) => {
+    const b = el("button", "mode",
+      `<span class="mode-name">${name}</span><span class="mode-tag">${tag}</span><span class="mode-desc">${desc}</span>`);
+    b.type = "button";
+    b.onclick = fn;
+    list.appendChild(b);
   });
-}
-function mcResult(){
-  const pct=Math.round(mc.score/mc.order.length*100);
-  app.innerHTML='';
-  const c=document.createElement('div');c.className='card center';
-  c.innerHTML=`<div class="qmeta">Test complete</div>
-    <div class="big" style="color:${pct>=80?'var(--good)':pct>=60?'var(--warn)':'var(--bad)'}">${pct}%</div>
-    <div>${mc.score} of ${mc.order.length} correct</div>`;
-  app.appendChild(c);
-  if(mc.missed.length){
-    const m=document.createElement('div');m.className='card';
-    m.innerHTML='<div class="qmeta">Review — missed</div>';
-    mc.missed.forEach(q=>{
-      const d=document.createElement('div');d.className='missed';
-      d.innerHTML=`<div class="q">${esc(q.q)}</div><div class="a">${esc(q.a)}</div>`;
-      m.appendChild(d);
-    });
-    app.appendChild(m);
-  }
-  const r=document.createElement('div');r.className='row';
-  const again=document.createElement('button');again.className='btn';again.textContent='Retake';again.onclick=startMC;
-  const menu=document.createElement('button');menu.className='btn ghost';menu.textContent='Menu';menu.onclick=home;
-  r.appendChild(again);r.appendChild(menu);app.appendChild(r);
+  app.appendChild(list);
 }
 
-/* ---------------- HARD (WRITTEN) MODE ---------------- */
-let hard;
-function startHard(){
-  hard={order:shuffle(QUESTIONS.map((_,i)=>i)),pos:0,got:0};
-  renderHard();
+/* ============ MULTIPLE CHOICE ============ */
+let test;
+function startTest(){
+  test = { order: shuffle(QUESTIONS.map((_, i) => i)), pos: 0, score: 0, missed: [] };
+  renderTest();
 }
-function renderHard(){
-  stopRecording(true);
-  if(hard.pos>=hard.order.length) return hardResult();
-  const q=QUESTIONS[hard.order[hard.pos]];
-  app.innerHTML='';
-  app.appendChild(backBar());
-  const c=document.createElement('div');c.className='card';
-  c.innerHTML=progBar(hard.pos,hard.order.length)+
-    `<div class="qmeta">Written ${hard.pos+1} of ${hard.order.length} · Got ${hard.got}</div>
-     <div class="qtext">${esc(q.q)}</div>
-     <textarea id="ta" placeholder="Write the full answer from memory…"></textarea>
-     <div class="hint">Type it out, then reveal to grade yourself honestly.</div>
-     <div id="clueBox"></div>
-     ${recWidget()}
-     <div class="row" style="margin-top:14px">
-       <button class="btn ghost" id="clueBtn">💡 Show clue</button>
-       <button class="btn" id="revealBtn">Reveal answer</button>
+function renderTest(){
+  if (test.pos >= test.order.length) return testResults();
+  const q = QUESTIONS[test.order[test.pos]];
+  const choices = shuffle([q.a].concat(shuffle(QUESTIONS.filter(x => x !== q)).slice(0, 3).map(x => x.a)));
+
+  app.innerHTML = "";
+  app.appendChild(backButton());
+  const card = el("div", "panel");
+  card.innerHTML = progress(test.pos, test.order.length) +
+    `<div class="qhead" style="margin-top:14px">
+       <span class="label strong">Item ${test.pos + 1} / ${test.order.length}</span>
+       <span class="label">Correct ${test.score}</span>
      </div>
-     <div id="ansBox"></div>`;
-  app.appendChild(c);
-  wireRec(c);
-  c.querySelector('#clueBtn').onclick=()=>{
-    c.querySelector('#clueBox').innerHTML=`<div class="clue">💡 ${esc(q.clue)}</div>`;
-    c.querySelector('#clueBtn').disabled=true;
-  };
-  c.querySelector('#revealBtn').onclick=()=>{
-    const ansBox=c.querySelector('#ansBox');
-    ansBox.innerHTML=`<div class="answer"><div class="lbl">Answer</div>${esc(q.a)}<div class="ref">Page: ${q.ref}</div></div>
-      <div class="row">
-        <button class="btn good" id="gGot">✓ I got it</button>
-        <button class="btn bad" id="gMiss">✗ Review it</button>
-      </div>`;
-    c.querySelector('#revealBtn').disabled=true;
-    ansBox.querySelector('#gGot').onclick=()=>{hard.got++;hard.pos++;renderHard();};
-    ansBox.querySelector('#gMiss').onclick=()=>{hard.pos++;renderHard();};
-  };
-}
-function hardResult(){
-  const pct=Math.round(hard.got/hard.order.length*100);
-  app.innerHTML='';
-  const c=document.createElement('div');c.className='card center';
-  c.innerHTML=`<div class="qmeta">Written round complete</div>
-    <div class="big" style="color:${pct>=80?'var(--good)':pct>=60?'var(--warn)':'var(--bad)'}">${hard.got}/${hard.order.length}</div>
-    <div>self-graded "got it"</div>`;
-  app.appendChild(c);
-  const r=document.createElement('div');r.className='row';
-  const again=document.createElement('button');again.className='btn';again.textContent='Go again';again.onclick=startHard;
-  const menu=document.createElement('button');menu.className='btn ghost';menu.textContent='Menu';menu.onclick=home;
-  r.appendChild(again);r.appendChild(menu);app.appendChild(r);
-}
+     <p class="qtext">${esc(q.q)}</p>
+     <div class="opts" id="opts"></div>
+     <div id="after"></div>`;
+  app.appendChild(card);
 
-/* ---------------- FLASHCARDS ---------------- */
-let cards;
-function startCards(){cards={order:shuffle(QUESTIONS.map((_,i)=>i)),pos:0,flip:false};renderCards();}
-function renderCards(){
-  stopRecording(true);
-  const q=QUESTIONS[cards.order[cards.pos]];
-  app.innerHTML='';
-  app.appendChild(backBar());
-  const c=document.createElement('div');c.className='card';
-  c.style.minHeight='220px';
-  c.innerHTML=progBar(cards.pos,cards.order.length)+
-    `<div class="qmeta">Card ${cards.pos+1} of ${cards.order.length}</div>`+
-    (cards.flip
-      ? `<div class="answer"><div class="lbl">Answer</div>${esc(q.a)}<div class="ref">Page: ${q.ref}</div></div>`
-      : `<div class="qtext" style="margin-top:8px">${esc(q.q)}</div><div class="hint">Tap “Flip” to see the answer.</div>`);
-  app.appendChild(c);
-  const r=document.createElement('div');r.className='row';
-  const flip=document.createElement('button');flip.className='btn';flip.textContent=cards.flip?'Question':'Flip';
-  flip.onclick=()=>{cards.flip=!cards.flip;renderCards();};
-  const prev=document.createElement('button');prev.className='btn ghost';prev.textContent='← Prev';
-  prev.disabled=cards.pos===0;prev.onclick=()=>{cards.pos--;cards.flip=false;renderCards();};
-  const next=document.createElement('button');next.className='btn ghost';next.textContent='Next →';
-  next.disabled=cards.pos>=cards.order.length-1;next.onclick=()=>{cards.pos++;cards.flip=false;renderCards();};
-  r.appendChild(flip);r.appendChild(prev);r.appendChild(next);app.appendChild(r);
-}
-
-/* ---------------- BROWSE ---------------- */
-function browse(){
-  stopRecording(true);
-  app.innerHTML='';
-  app.appendChild(backBar());
-  QUESTIONS.forEach((q,i)=>{
-    const c=document.createElement('div');c.className='card';
-    c.innerHTML=`<div class="qmeta">${i+1} · ${q.ref}</div>
-      <div class="qtext" style="font-size:16px">${esc(q.q)}</div>
-      <div class="answer" style="margin-bottom:0"><div class="lbl">Answer</div>${esc(q.a)}</div>`;
-    app.appendChild(c);
+  const opts = card.querySelector("#opts");
+  choices.forEach((choice, i) => {
+    const b = el("button", "opt", `<span class="key">${LETTERS[i]}</span><span>${esc(choice)}</span>`);
+    b.type = "button";
+    b.onclick = () => {
+      const right = choice === q.a;
+      if (right) test.score++; else test.missed.push(q);
+      Array.from(opts.children).forEach(node => {
+        node.disabled = true;
+        const txt = node.lastElementChild.textContent;
+        if (txt === q.a) node.classList.add("correct");
+        else if (node === b) node.classList.add("wrong");
+      });
+      const after = card.querySelector("#after");
+      after.innerHTML = `<div class="ref">${right ? "Correct" : "Incorrect"} &middot; Page ${q.ref}</div>`;
+      const next = el("button", "btn", test.pos + 1 >= test.order.length ? "See results" : "Next item");
+      next.type = "button";
+      next.style.marginTop = "14px";
+      next.onclick = () => { test.pos++; renderTest(); };
+      after.appendChild(next);
+      next.focus();
+    };
+    opts.appendChild(b);
   });
 }
+function testResults(){
+  const pct = Math.round(test.score / test.order.length * 100);
+  const tone = pct >= 80 ? "var(--good)" : pct >= 60 ? "var(--accent)" : "var(--bad)";
+  app.innerHTML = "";
+  const head = el("div", "panel");
+  head.innerHTML =
+    `<div class="label">Test complete</div>
+     <div class="score" style="color:${tone}">${pct}%</div>
+     <div class="label">${test.score} of ${test.order.length} correct</div>`;
+  app.appendChild(head);
 
-/* ---------------- VOICE RECORDING ---------------- */
-let mediaRecorder=null, recChunks=[], recTimer=null, recSeconds=0, recStream=null;
-function recWidget(){
-  return `<div class="rec">
-    <button type="button" class="recBtn" id="recBtn" title="Record">●</button>
-    <span class="dot" id="recDot"></span>
-    <span class="t" id="recTime">0:00</span>
-    <audio id="recAudio" controls style="display:none"></audio>
-    <span class="hint" id="recHint" style="margin-top:0">Record yourself saying the answer</span>
-  </div>`;
-}
-function wireRec(scope){
-  const btn=scope.querySelector('#recBtn');
-  if(!btn) return;
-  btn.onclick=()=>{ mediaRecorder&&mediaRecorder.state==='recording' ? stopRecording() : startRecording(scope); };
-}
-async function startRecording(scope){
-  const hint=scope.querySelector('#recHint');
-  if(!navigator.mediaDevices||!window.MediaRecorder){
-    hint.textContent='Recording not supported in this browser.';return;
+  if (test.missed.length){
+    const box = el("div", "panel stack");
+    box.appendChild(el("div", "label", `Review &middot; ${test.missed.length} missed`));
+    test.missed.forEach(q => {
+      box.appendChild(el("div", "miss",
+        `<span class="mq">${esc(q.q)}</span><span class="ma">${esc(q.a)}</span><span class="ref" style="margin:0">Page ${q.ref}</span>`));
+    });
+    app.appendChild(box);
   }
-  try{
-    recStream=await navigator.mediaDevices.getUserMedia({audio:true});
-  }catch(e){
-    hint.textContent='Microphone blocked — allow mic access to record.';return;
-  }
-  recChunks=[];recSeconds=0;
-  mediaRecorder=new MediaRecorder(recStream);
-  mediaRecorder.ondataavailable=e=>{if(e.data.size)recChunks.push(e.data);};
-  mediaRecorder.onstop=()=>{
-    const blob=new Blob(recChunks,{type:mediaRecorder.mimeType||'audio/webm'});
-    const url=URL.createObjectURL(blob);
-    const au=scope.querySelector('#recAudio');
-    if(au){au.src=url;au.style.display='inline-block';}
-    if(hint)hint.textContent='Saved — play it back below.';
+
+  const row = el("div", "row");
+  const again = el("button", "btn", "Retake test");
+  again.type = "button"; again.onclick = startTest;
+  const menu = el("button", "btn quiet", "All modes");
+  menu.type = "button"; menu.onclick = home;
+  row.append(again, menu);
+  app.appendChild(row);
+}
+
+/* ============ WRITTEN / HARD MODE ============ */
+let written;
+function startWritten(){
+  written = { order: shuffle(QUESTIONS.map((_, i) => i)), pos: 0, got: 0 };
+  renderWritten();
+}
+function renderWritten(){
+  teardownRecorder();
+  if (written.pos >= written.order.length) return writtenResults();
+  const q = QUESTIONS[written.order[written.pos]];
+
+  app.innerHTML = "";
+  app.appendChild(backButton());
+  const card = el("div", "panel");
+  card.innerHTML = progress(written.pos, written.order.length) +
+    `<div class="qhead" style="margin-top:14px">
+       <span class="label strong">Written ${written.pos + 1} / ${written.order.length}</span>
+       <span class="label">Got it ${written.got}</span>
+     </div>
+     <p class="qtext">${esc(q.q)}</p>
+     <textarea id="ta" placeholder="Write the full answer from memory…" aria-label="Your answer"></textarea>
+     <p class="note" style="margin:8px 0 0">Write it out before you reveal. Say it out loud too — the oral is spoken.</p>
+     <div id="clueSlot" style="margin-top:14px"></div>
+     <div class="rec" style="margin-top:14px">
+       <button type="button" class="recBtn" id="recBtn" aria-pressed="false" aria-label="Record your spoken answer"><span class="glyph"></span></button>
+       <span class="rectime" id="recTime">0:00</span>
+       <span class="meter" id="recMeter"><i></i></span>
+       <span class="note" id="recNote" style="flex:1 1 130px">Record your spoken answer</span>
+       <audio id="recAudio" controls hidden></audio>
+     </div>
+     <div class="row" style="margin-top:16px">
+       <button type="button" class="btn quiet" id="clueBtn">Show clue</button>
+       <button type="button" class="btn" id="revealBtn">Reveal answer</button>
+     </div>
+     <div id="revealSlot"></div>`;
+  app.appendChild(card);
+
+  wireRecorder(card);
+
+  card.querySelector("#clueBtn").onclick = e => {
+    card.querySelector("#clueSlot").innerHTML =
+      `<div class="clue"><span class="label">Clue</span><p>${esc(q.clue)}</p></div>`;
+    e.currentTarget.disabled = true;
   };
-  mediaRecorder.start();
-  const btn=scope.querySelector('#recBtn'),dot=scope.querySelector('#recDot'),tEl=scope.querySelector('#recTime');
-  btn.classList.add('stop');btn.textContent='■';dot.classList.add('live');hint.textContent='Recording… tap to stop';
-  recTimer=setInterval(()=>{recSeconds++;const m=recSeconds/60|0,s=recSeconds%60;tEl.textContent=m+':'+String(s).padStart(2,'0');},1000);
+
+  card.querySelector("#revealBtn").onclick = e => {
+    e.currentTarget.disabled = true;
+    const typed = norm(card.querySelector("#ta").value);
+    const hits = q.keys.filter(k => typed.includes(norm(k)));
+    const slot = card.querySelector("#revealSlot");
+    slot.innerHTML =
+      `<div class="answer" style="margin-top:16px">
+         <span class="label">Answer</span>
+         <p>${esc(q.a)}</p>
+         <div class="ref">Page ${q.ref}</div>
+       </div>
+       <div style="margin-top:14px">
+         <span class="label">Key terms &middot; ${hits.length} of ${q.keys.length} in what you wrote</span>
+         <div class="terms">${q.keys.map(k => `<span class="term${hits.includes(k) ? " hit" : ""}">${esc(k)}</span>`).join("")}</div>
+         <p class="note" style="margin-top:8px">Rough text match only — you are the grader.</p>
+       </div>
+       <div class="row" style="margin-top:16px">
+         <button type="button" class="btn affirm" id="gotIt">I had it</button>
+         <button type="button" class="btn deny" id="missIt">Needs review</button>
+       </div>`;
+    slot.querySelector("#gotIt").onclick = () => { written.got++; written.pos++; renderWritten(); };
+    slot.querySelector("#missIt").onclick = () => { written.pos++; renderWritten(); };
+  };
 }
-function stopRecording(silent){
-  if(recTimer){clearInterval(recTimer);recTimer=null;}
-  if(mediaRecorder&&mediaRecorder.state==='recording'){ try{mediaRecorder.stop();}catch(e){} }
-  if(recStream){recStream.getTracks().forEach(t=>t.stop());recStream=null;}
-  if(!silent){
-    const btn=document.getElementById('recBtn'),dot=document.getElementById('recDot');
-    if(btn){btn.classList.remove('stop');btn.textContent='●';}
-    if(dot)dot.classList.remove('live');
+function writtenResults(){
+  teardownRecorder();
+  const total = written.order.length;
+  const pct = Math.round(written.got / total * 100);
+  const tone = pct >= 80 ? "var(--good)" : pct >= 60 ? "var(--accent)" : "var(--bad)";
+  app.innerHTML = "";
+  const head = el("div", "panel");
+  head.innerHTML =
+    `<div class="label">Written round complete</div>
+     <div class="score" style="color:${tone}">${written.got}<span style="color:var(--muted)">/${total}</span></div>
+     <div class="label">Self-graded as known</div>`;
+  app.appendChild(head);
+  const row = el("div", "row");
+  const again = el("button", "btn", "Run it again");
+  again.type = "button"; again.onclick = startWritten;
+  const menu = el("button", "btn quiet", "All modes");
+  menu.type = "button"; menu.onclick = home;
+  row.append(again, menu);
+  app.appendChild(row);
+}
+
+/* ============ FLASHCARDS ============ */
+let cards;
+function startCards(){
+  cards = { order: shuffle(QUESTIONS.map((_, i) => i)), pos: 0, flipped: false };
+  renderCards();
+}
+function renderCards(){
+  teardownRecorder();
+  const q = QUESTIONS[cards.order[cards.pos]];
+  app.innerHTML = "";
+  app.appendChild(backButton());
+  const card = el("div", "panel");
+  card.innerHTML = progress(cards.pos, cards.order.length) +
+    `<div class="qhead" style="margin-top:14px">
+       <span class="label strong">Card ${cards.pos + 1} / ${cards.order.length}</span>
+       <span class="label">${cards.flipped ? "Answer" : "Question"}</span>
+     </div>
+     <div class="card-face">${
+       cards.flipped
+         ? `<div class="answer"><span class="label">Answer</span><p>${esc(q.a)}</p><div class="ref">Page ${q.ref}</div></div>`
+         : `<p class="qtext" style="margin:0">${esc(q.q)}</p>`
+     }</div>`;
+  app.appendChild(card);
+
+  const row = el("div", "row");
+  const flip = el("button", "btn", cards.flipped ? "Show question" : "Show answer");
+  flip.type = "button";
+  flip.onclick = () => { cards.flipped = !cards.flipped; renderCards(); };
+  const prev = el("button", "btn quiet", "&larr; Prev");
+  prev.type = "button"; prev.disabled = cards.pos === 0;
+  prev.onclick = () => { cards.pos--; cards.flipped = false; renderCards(); };
+  const next = el("button", "btn quiet", "Next &rarr;");
+  next.type = "button"; next.disabled = cards.pos >= cards.order.length - 1;
+  next.onclick = () => { cards.pos++; cards.flipped = false; renderCards(); };
+  row.append(flip, prev, next);
+  app.appendChild(row);
+}
+
+/* ============ BROWSE ============ */
+function browse(){
+  teardownRecorder();
+  app.innerHTML = "";
+  app.appendChild(backButton());
+  const box = el("div", "panel");
+  QUESTIONS.forEach((q, i) => {
+    box.appendChild(el("div", "entry",
+      `<div class="entry-head">
+         <span class="label strong">Item ${String(i + 1).padStart(2, "0")}</span>
+         <span class="label">Page ${q.ref}</span>
+       </div>
+       <div class="eq">${esc(q.q)}</div>
+       <p class="ea">${esc(q.a)}</p>`));
+  });
+  app.appendChild(box);
+}
+
+/* ============ RECORDER ============ */
+let recorder = null, recStream = null, recChunks = [], recTimer = null, recSecs = 0;
+let audioCtx = null, analyser = null, rafId = null, recUrl = null;
+
+function wireRecorder(scope){
+  const btn = scope.querySelector("#recBtn");
+  if (!btn) return;
+  btn.onclick = () => {
+    if (recorder && recorder.state === "recording") stopRecording(scope);
+    else beginRecording(scope);
+  };
+}
+
+async function beginRecording(scope){
+  const note = scope.querySelector("#recNote");
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder){
+    note.textContent = "This browser cannot record audio.";
+    return;
   }
-  mediaRecorder=null;
+  try {
+    recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (err) {
+    note.textContent = err && err.name === "NotAllowedError"
+      ? "Microphone blocked — allow access, then tap record again."
+      : "No microphone available.";
+    return;
+  }
+
+  recChunks = [];
+  recSecs = 0;
+  try {
+    recorder = new MediaRecorder(recStream);
+  } catch (err) {
+    note.textContent = "Recording is not supported here.";
+    releaseStream();
+    return;
+  }
+
+  recorder.ondataavailable = e => { if (e.data && e.data.size) recChunks.push(e.data); };
+  recorder.onstop = () => {
+    const audio = scope.querySelector("#recAudio");
+    if (recChunks.length && audio){
+      if (recUrl) URL.revokeObjectURL(recUrl);
+      recUrl = URL.createObjectURL(new Blob(recChunks, { type: recorder.mimeType || "audio/webm" }));
+      audio.src = recUrl;
+      audio.hidden = false;
+      note.textContent = "Play it back and compare.";
+    }
+  };
+  recorder.start();
+
+  const btn = scope.querySelector("#recBtn");
+  const time = scope.querySelector("#recTime");
+  btn.setAttribute("aria-pressed", "true");
+  note.textContent = "Recording — tap the square to stop.";
+  recTimer = setInterval(() => {
+    recSecs++;
+    time.textContent = Math.floor(recSecs / 60) + ":" + String(recSecs % 60).padStart(2, "0");
+  }, 1000);
+
+  startMeter(scope);
+}
+
+function startMeter(scope){
+  const bar = scope.querySelector("#recMeter > i");
+  if (!bar || !window.AudioContext && !window.webkitAudioContext) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = audioCtx.createMediaStreamSource(recStream);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    src.connect(analyser);
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    const tick = () => {
+      analyser.getByteTimeDomainData(data);
+      let peak = 0;
+      for (let i = 0; i < data.length; i++) peak = Math.max(peak, Math.abs(data[i] - 128));
+      bar.style.width = Math.min(100, (peak / 96) * 100) + "%";
+      rafId = requestAnimationFrame(tick);
+    };
+    tick();
+  } catch (err) { /* meter is optional */ }
+}
+
+function stopRecording(scope){
+  if (recTimer){ clearInterval(recTimer); recTimer = null; }
+  if (rafId){ cancelAnimationFrame(rafId); rafId = null; }
+  if (recorder && recorder.state === "recording"){ try { recorder.stop(); } catch (err) {} }
+  if (audioCtx){ try { audioCtx.close(); } catch (err) {} audioCtx = null; analyser = null; }
+  releaseStream();
+  if (scope){
+    const btn = scope.querySelector("#recBtn");
+    const bar = scope.querySelector("#recMeter > i");
+    if (btn) btn.setAttribute("aria-pressed", "false");
+    if (bar) bar.style.width = "0%";
+  }
+}
+function releaseStream(){
+  if (recStream){ recStream.getTracks().forEach(t => t.stop()); recStream = null; }
+}
+function teardownRecorder(){
+  stopRecording(document);
+  recorder = null;
+  if (recUrl){ URL.revokeObjectURL(recUrl); recUrl = null; }
 }
 
 home();
